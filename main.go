@@ -163,7 +163,7 @@ func main() {
 
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "8080"
+		port = "3080"
 	}
 
 	log.Println("Sidra plugin server running on port :", port)
