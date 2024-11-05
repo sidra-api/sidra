@@ -44,9 +44,13 @@ func defaultHandler(w http.ResponseWriter, r *http.Request) {
 		Headers:    make(map[string]string),
 		Body:       "",
 	}
+
 	for _, plugin := range strings.Split(plugins, ",") {
 		fmt.Println("execute " + plugin)
 		response = goPlugin(plugin, request)
+		for key, value := range response.Headers {
+			w.Header().Set(key, value)
+		}
 		fmt.Println("response " + strconv.Itoa(response.StatusCode))
 		if response.StatusCode != http.StatusOK {
 			break;
