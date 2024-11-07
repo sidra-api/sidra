@@ -5,6 +5,7 @@ type SidraRequest struct {
 	Body string
 	Url string
 	Method string
+	IP string `json:"ip"`
 }
 
 type SidraResponse struct {
