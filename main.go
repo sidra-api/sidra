@@ -2,170 +2,76 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"log"
 	"net"
 	"net/http"
-	"net/url"
-	"os"
-	"strconv"
-	"strings"
+	"path/filepath"
 
 	"github.com/sidra-gateway/sidra-plugins/lib"
 )
 
-func defaultHandler(w http.ResponseWriter, r *http.Request) {
-
-	serviceName := r.Header.Get("ServiceName")
-	servicePort := r.Header.Get("ServicePort")
-	plugins := r.Header.Get("Plugins")
-	
-	bodyBytes, err := io.ReadAll(r.Body)
-	if err != nil {
-		http.Error(w, "Failed to read request body.", http.StatusInternalServerError)
-		return
-	}
-	requestBodyString := string(bodyBytes)
-	request := lib.SidraRequest{
-		Headers: make(map[string]string),
-		Body:    requestBodyString,
-		Url:     r.URL.String(),
-		Method: r.Method,
-	}
-
-	for key, values := range r.Header {
-		for _, value := range values {
-			request.Headers[key] = value
-		}
-	}
-	response := lib.SidraResponse {
-		StatusCode: http.StatusOK,
-		Headers:    make(map[string]string),
-		Body:       "",
-	}
-
-	for _, plugin := range strings.Split(plugins, ",") {
-		fmt.Println("execute " + plugin)
-		response = goPlugin(plugin, request)
-		for key, value := range response.Headers {
-			w.Header().Set(key, value)
-		}
-		fmt.Println("response " + strconv.Itoa(response.StatusCode))
-		if response.StatusCode != http.StatusOK {
-			break;
-		}
-	}
-	if response.StatusCode != http.StatusOK {
-		for key, value := range response.Headers {
-			w.Header().Set(key, value)
-		}
-		w.WriteHeader(response.StatusCode)
-		w.Write([]byte(response.Body))
-		return
-	}
-	if serviceName == "" || servicePort == "" {
-		http.Error(w, "ServiceName or ServicePort are not available.", http.StatusBadRequest)
+func goPlugin(w http.ResponseWriter, r *http.Request) {
+	pluginName := r.Header.Get("Plugins")
+	if pluginName == "" {
+		http.Error(w, "Missing Plugins header", http.StatusBadRequest)
 		return
 	}
 
-	err = forwardToService(w, r, serviceName, servicePort)
+	// Connect to the plugin's Unix socket
+	socketPath := filepath.Join("/tmp", pluginName+".sock")
+	conn, err := net.Dial("unix", socketPath)
 	if err != nil {
-		log.Println("Failed to forward request :", err)
-		http.Error(w, "Failed to forward request.", http.StatusInternalServerError)
-	}
-}
-
-func goPlugin(pluginName string, request lib.SidraRequest) (response lib.SidraResponse) {
-	conn, err := net.Dial("unix", "/tmp/" + pluginName + ".sock")
-	if err != nil {
-		return lib.SidraResponse{
-			StatusCode: http.StatusInternalServerError,
-			Body:       "Failed to connect to plugin: " + err.Error(),
-		}
+		http.Error(w, "Plugin connection failed", http.StatusInternalServerError)
+		log.Printf("Error connecting to plugin socket %s: %v\n", socketPath, err)
+		return
 	}
 	defer conn.Close()
 
-	requestBytes, err := json.Marshal(request)
+	// Marshal request data to JSON
+	requestData := lib.SidraRequest{
+		Headers: map[string]string{
+			"X-Real-Ip": r.Header.Get("X-Real-Ip"),
+			"Plugins":   pluginName,
+		},
+		Url:    r.URL.Path,
+		Method: r.Method,
+	}
+	data, _ := json.Marshal(requestData)
+
+	// Send the request to the plugin
+	if _, err := conn.Write(data); err != nil {
+		http.Error(w, "Failed to send data to plugin", http.StatusInternalServerError)
+		log.Printf("Error writing to plugin socket: %v\n", err)
+		return
+	}
+
+	// Read plugin response
+	respData, err := io.ReadAll(conn)
 	if err != nil {
-		return lib.SidraResponse{
-			StatusCode: http.StatusInternalServerError,
-			Body:       "Failed to marshal request: " + err.Error(),
-		}
-	}
-	fmt.Println("write to plugins")
-	_, err = conn.Write(requestBytes)
-	if err != nil {
-		return lib.SidraResponse{
-			StatusCode: http.StatusInternalServerError,
-			Body:       "Failed to send request to plugin: " + err.Error(),
-		}
-	}
-	buffer := make([]byte, 1024)
-
-	n, err := conn.Read(buffer)
-	responseBytes := buffer[:n]
-	if err != nil {
-		return lib.SidraResponse{
-			StatusCode: http.StatusInternalServerError,
-			Body:       "Failed to read response from plugin: " + err.Error(),
-		}
-	}
-	
-	err = json.Unmarshal(responseBytes, &response)
-	if err != nil {
-		return lib.SidraResponse{
-			StatusCode: http.StatusInternalServerError,
-			Body:       "Failed to unmarshal response: " + err.Error(),
-		}
-	}
-	return	
-}
-
-func forwardToService(w http.ResponseWriter, r *http.Request, serviceName, servicePort string) error {
-	targetURL := &url.URL{
-		Scheme: "http",
-		Host:   serviceName + ":" + servicePort,
-		Path:   r.URL.Path,
+		http.Error(w, "Failed to read plugin response", http.StatusInternalServerError)
+		log.Printf("Error reading plugin response: %v\n", err)
+		return
 	}
 
-	proxyReq, err := http.NewRequest(r.Method, targetURL.String(), r.Body)
-	if err != nil {
-		return err
+	// Unmarshal response data
+	var pluginResponse lib.SidraResponse
+	if err := json.Unmarshal(respData, &pluginResponse); err != nil {
+		http.Error(w, "Invalid plugin response format", http.StatusInternalServerError)
+		log.Printf("Error unmarshalling plugin response: %v\n", err)
+		return
 	}
 
-	for key, values := range r.Header {
-		for _, value := range values {
-			proxyReq.Header.Add(key, value)
-		}
-	}
-
-	client := &http.Client{}
-	resp, err := client.Do(proxyReq)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	for key, values := range resp.Header {
-		for _, value := range values {
-			w.Header().Add(key, value)
-		}
-	}
-
-	w.WriteHeader(resp.StatusCode)
-	_, err = io.Copy(w, resp.Body)
-	return err
+	// Write the response from the plugin back to the client
+	w.WriteHeader(pluginResponse.StatusCode)
+	w.Write([]byte(pluginResponse.Body))
+	log.Printf("Response from plugin: %s\n", pluginResponse.Body)
 }
 
 func main() {
-	http.HandleFunc("/", defaultHandler)
-
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "3080"
+	http.HandleFunc("/", goPlugin)
+	log.Println("Sidra plugin server running on port : 3080")
+	if err := http.ListenAndServe(":3080", nil); err != nil {
+		log.Fatalf("Server failed to start: %v", err)
 	}
-
-	log.Println("Sidra plugin server running on port :", port)
-	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
