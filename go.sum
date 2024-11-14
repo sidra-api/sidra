@@ -1,0 +1,10 @@
+github.com/cespare/xxhash/v2 v2.1.2 h1:YRXhKfTDauu4ajMg1TPgFO5jnlC2HCbmLXMcTG5cbYE=
+github.com/cespare/xxhash/v2 v2.1.2/go.mod h1:VGX0DQ3Q6kWi7AoAeZDth3/j3BFtOZR5XLFGgcrjCOs=
+github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f h1:lO4WD4F/rVNCu3HqELle0jiPLLBs70cWOduZpkS1E78=
+github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f/go.mod h1:cuUVRXasLTGF7a8hSLbxyZXjz+1KgoB3wDUb6vlszIc=
+github.com/go-redis/redis/v8 v8.11.5 h1:AcZZR7igkdvfVmQTPnu9WE37LRrO/YrBH5zWyjDC0oI=
+github.com/go-redis/redis/v8 v8.11.5/go.mod h1:gREzHqY1hg6oD9ngVRbLStwAWKhA0FEgq8Jd4h5lpwo=
+github.com/rezaardani667/plugin-cache v0.0.0-20241113043832-d64685edc287 h1:4QnoB+un5Lvt0COE9/yldlsi3gCts3tTCNfM2yj5bWU=
+github.com/rezaardani667/plugin-cache v0.0.0-20241113043832-d64685edc287/go.mod h1:cdX4hApCiNZNNTOGJRbNPHcN04nPde2B25dCAkYYfdc=
+github.com/sidra-gateway/go-pdk v1.0.3 h1:hntDyXVRctsMRb3zH86Hu70QvLALsB3tzLtcNeMKDmM=
+github.com/sidra-gateway/go-pdk v1.0.3/go.mod h1:b/zEmCfb0kEzg/rmDGFYbB4kSMb80KAAXV8904OcQ2w=

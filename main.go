@@ -10,10 +10,17 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	//"time"
 
 	"github.com/sidra-gateway/sidra-plugins/lib"
+	//"github.com/go-redis/redis/v8"
+	//"golang.org/x/net/context"
+	//"github.com/sidra-gateway/sidra-plugins/cache"
 )
 
+//var redisClient *redis.Client
+
+//defaultHandler akan menangani request & memberikan response
 func defaultHandler(w http.ResponseWriter, r *http.Request) {
 	serviceName := r.Header.Get("ServiceName")
 	servicePort := r.Header.Get("ServicePort")
@@ -42,12 +49,8 @@ func defaultHandler(w http.ResponseWriter, r *http.Request) {
 			request.Headers[key] = value
 		}
 	}
-
-	response := lib.SidraResponse{
-		StatusCode: http.StatusOK,
-		Headers:    make(map[string]string),
-		Body:       "",
-	}
+	
+	var response lib.SidraResponse
 
 	// Jalankan plugin
 	for _, plugin := range strings.Split(plugins, ",") {
@@ -58,28 +61,27 @@ func defaultHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		
 		// Jika respons dr plugin tdk OK, kirimkan respons langsung ke client
-	}
-	if response.StatusCode != http.StatusOK {
-		w.WriteHeader(response.StatusCode)
-		w.Write([]byte(response.Body))
-		return
-	}
-
-	// TODO : Bikin plugin cache by URL pakai Redis
-	if response.Headers["x-cache"] == "1" {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(response.Body))
-		return
-	}
-	if serviceName == "" || servicePort == "" {
-		http.Error(w, "ServiceName or ServicePort are not available.", http.StatusBadRequest)
-		return
+		if response.StatusCode != http.StatusOK {
+			fmt.Println("Plugin response not OK. Status: ", response.StatusCode)
+			w.WriteHeader(response.StatusCode)
+			w.Write([]byte(response.Body))
+			return
+		}
 	}
 
+	//Setel kode status default jika tdk ada plugin yg mengubahnya
+	if response.StatusCode == 0 {
+		response.StatusCode = http.StatusOK //Set status code di sini stlh semua plugin diproses
+	}
+
+	w.WriteHeader(response.StatusCode)
+	w.Write([]byte(response.Body))
+
+	//Jika tdk ada plugin yg mengubah status, lanjutkan ke service
 	err = forwardToService(w, r, serviceName, servicePort)
 	if err != nil {
-		log.Println("Failed to forward request :", err)
-		http.Error(w, "Failed to forward request.", http.StatusInternalServerError)
+		http.Error(w, "Failed to forward request to service: "+err.Error(), http.StatusInternalServerError)
+		return
 	}
 }
 
@@ -100,7 +102,7 @@ func goPlugin(pluginName string, request lib.SidraRequest) (response lib.SidraRe
 			Body:       "Failed to marshal request: " + err.Error(),
 		}
 	}
-	fmt.Println("write to plugins")
+	fmt.Println("write to plugins", pluginName)
 	_, err = conn.Write(requestBytes)
 	if err != nil {
 		return lib.SidraResponse{
@@ -125,6 +127,7 @@ func goPlugin(pluginName string, request lib.SidraRequest) (response lib.SidraRe
 			Body:       "Failed to unmarshal response: " + err.Error(),
 		}
 	}
+	fmt.Println("Plugin's response: ", response)
 	return
 }
 
@@ -168,7 +171,7 @@ func forwardToService(w http.ResponseWriter, r *http.Request, serviceName, servi
 			w.Header().Add(key, value)
 		}
 	}
-	w.WriteHeader(resp.StatusCode)
+	//w.WriteHeader(resp.StatusCode)
 
 	// Copy the response body from target service to the response writer
 	_, err = io.Copy(w, resp.Body)
