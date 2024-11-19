@@ -12,8 +12,7 @@ import (
 	"strings"
 
 	"github.com/sidra-gateway/sidra-plugins/lib"
-	//"github.com/go-redis/redis/v8"
-	//"golang.org/x/net/context"
+	
 )
 
 //defaultHandler akan menangani request & memberikan response
@@ -64,13 +63,22 @@ func defaultHandler(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte(response.Body))
 			return
 		}
+		if w.Header().Get("Cache-Control") != "no-cache" {
+			w.WriteHeader(response.StatusCode)
+			w.Write([]byte(response.Body))			
+		}
 	}
 
-	//Jika semua plugin OK, teruskan ke backend
-	err := forwardToService(w, r, serviceName, servicePort)
-	if err != nil {
-		http.Error(w, "Failed to forward request to service:"+err.Error(), http.StatusInternalServerError)
-		//return
+	if w.Header().Get("Cache-Control") == "no-cache" {
+		err := forwardToService(w, r, serviceName, servicePort)
+		if err != nil {
+			http.Error(w, "Failed to forward request to service:"+err.Error(), http.StatusInternalServerError)
+			//return
+		}
+	}
+	for _, plugin := range strings.Split(plugins, ",") {
+		fmt.Println("run plugin: " + plugin)
+		response = goPlugin(plugin + ".response", request)
 	}
 }
 
@@ -86,39 +94,9 @@ func goPlugin(pluginName string, request lib.SidraRequest) (response lib.SidraRe
 
 	requestBytes, _ := json.Marshal(request)
 	conn.Write(requestBytes)
-	// if err != nil {
-	// 	return lib.SidraResponse{
-	// 		StatusCode: http.StatusInternalServerError,
-	// 		Body:       "Failed to marshal request: " + err.Error(),
-	// 	}
-	// }
-	// fmt.Println("write to plugins", pluginName)
-	// _, err = conn.Write(requestBytes)
-	// if err != nil {
-	// 	return lib.SidraResponse{
-	// 		StatusCode: http.StatusInternalServerError,
-	// 		Body:       "Failed to send request to plugin: " + err.Error(),
-	// 	}
-	// }
-
 	buffer := make([]byte, 1024)
 	n, _ := conn.Read(buffer[0:])
 	json.Unmarshal(buffer[:n], &response)
-	// if err != nil {
-	// 	return lib.SidraResponse{
-	// 		StatusCode: http.StatusInternalServerError,
-	// 		Body:       "Failed to read response from plugin: " + err.Error(),
-	// 	}
-	// }
-	// responseBytes := buffer[:n]
-	// err = json.Unmarshal(responseBytes, &response)
-	// if err != nil {
-	// 	return lib.SidraResponse{
-	// 		StatusCode: http.StatusInternalServerError,
-	// 		Body:       "Failed to unmarshal response: " + err.Error(),
-	// 	}
-	// }
-	// fmt.Println("Plugin's response: ", response)
 	return response
 }
 
