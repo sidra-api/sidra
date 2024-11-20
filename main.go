@@ -25,10 +25,6 @@ func defaultHandler(w http.ResponseWriter, r *http.Request) {
 	bodyBytes, _ := io.ReadAll(r.Body)
 	requestBody := string(bodyBytes)
 	r.Body = io.NopCloser(strings.NewReader(requestBody)) // Reset body untuk keperluan penerusan berikutnya
-	//if err != nil {
-	//	http.Error(w, "Failed to read request body.", http.StatusInternalServerError)
-	//	return
-	//}
 	
 	request := lib.SidraRequest{
 		Headers: map[string]string{},
@@ -55,7 +51,7 @@ func defaultHandler(w http.ResponseWriter, r *http.Request) {
 		for key, value := range response.Headers {
 			w.Header().Set(key, value)
 		}
-		
+		fmt.Printf("Response: %v", response.Headers["Cache-Control"])
 		// Jika respons dr plugin tdk OK, kirimkan respons langsung ke client
 		if response.StatusCode != http.StatusOK {
 			fmt.Println("Plugin response not OK. Status: ", response.StatusCode)
@@ -109,15 +105,10 @@ func forwardToService(w http.ResponseWriter, r *http.Request, serviceName, servi
 
 	// Re-read body to forward it to the service
 	bodyBytes, _ := io.ReadAll(r.Body)
-	// if err != nil {
-	// 	return fmt.Errorf("error reading request body: %v", err)
-	// }
+	
 	r.Body = io.NopCloser(strings.NewReader(string(bodyBytes))) // Reset body for future use in plugins
 
 	proxyReq, _ := http.NewRequest(r.Method, targetURL.String(), io.NopCloser(strings.NewReader(string(bodyBytes))))
-	// if err != nil {
-	// 	return fmt.Errorf("error creating proxy request: %v", err)
-	// }
 
 	// Copy headers from original request to new request
 	for key, values := range r.Header {
@@ -142,13 +133,6 @@ func forwardToService(w http.ResponseWriter, r *http.Request, serviceName, servi
 	}
 	w.WriteHeader(resp.StatusCode)
 	io.Copy(w, resp.Body)
-
-	// // Copy the response body from target service to the response writer
-	// _, err = io.Copy(w, resp.Body)
-	// if err != nil {
-	// 	return fmt.Errorf("error copying response body: %v", err)
-	// }
-
 	return nil
 }
 
