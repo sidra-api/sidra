@@ -69,7 +69,6 @@ func defaultHandler(w http.ResponseWriter, r *http.Request) {
 		err := forwardToService(w, r, serviceName, servicePort)
 		if err != nil {
 			http.Error(w, "Failed to forward request to service:"+err.Error(), http.StatusInternalServerError)
-			//return
 		}
 	}
 	for _, plugin := range strings.Split(plugins, ",") {
