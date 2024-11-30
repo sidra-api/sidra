@@ -1,3 +1,3 @@
-module sidra-plugins-hub
+module github.com/sidra-gateway/sidra-plugins-hub
 
 go 1.23.2

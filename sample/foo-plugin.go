@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/sidra-gateway/sidra-plugins/lib"
+	"github.com/sidra-gateway/sidra-plugins-hub/lib"
 )
 
 func main() {
