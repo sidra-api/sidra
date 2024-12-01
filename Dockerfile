@@ -1,12 +1,8 @@
 # Gunakan base image untuk Golang
-FROM golang:1.23.2 AS builder
+FROM golang:1.23 AS builder
 
 # Set working directory di dalam container
 WORKDIR /app
-
-# Tambahkan token GitHub untuk dependency privat
-ARG GITHUB_TOKEN
-RUN echo "machine github.com login $GITHUB_TOKEN" > ~/.netrc
 
 # Copy semua file source sidra-plugins-hub ke container
 COPY . .
