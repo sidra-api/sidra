@@ -11,5 +11,5 @@ func main() {
         Password: "", // no password set
         DB:       0,  // use default DB
     })	
-	rdb.HSet(context.Background(), "test.sh:3080/test", "serviceName", "localhost", "servicePort", "8080", "plugins", "bar,foo")
+	rdb.HSet(context.Background(), "test.sh:8080/test", "serviceName", "localhost", "servicePort", "3080", "plugins", "foo")
 }

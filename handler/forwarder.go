@@ -1,47 +1,56 @@
 package handler
 
 import (
-	"io"
+	"fmt"
 	"net/http"
 	"net/url"
-	"strings"
+	"os"
+	"time"
+
+	"github.com/sidra-gateway/sidra-plugins-hub/lib"
+	"github.com/valyala/fasthttp"
 )
 
-func (h *Handler) ForwardToService(w http.ResponseWriter, r *http.Request, serviceName, servicePort string) error {
+func (h *Handler) ForwardToService(ctx *fasthttp.RequestCtx, request lib.SidraRequest, resp *fasthttp.Response, serviceName, servicePort string)  {
 	targetURL := &url.URL{
 		Scheme: "http",
 		Host:   serviceName + ":" + servicePort,
-		Path:   r.URL.Path,
+		Path:   request.Url,
 	}
 
-	// Re-read body to forward it to the service
-	bodyBytes, _ := io.ReadAll(r.Body)
-
-	r.Body = io.NopCloser(strings.NewReader(string(bodyBytes))) // Reset body for future use in plugins
-
-	proxyReq, _ := http.NewRequest(r.Method, targetURL.String(), io.NopCloser(strings.NewReader(string(bodyBytes))))
-
-	// Copy headers from original request to new request
-	for key, values := range r.Header {
-		for _, value := range values {
-			proxyReq.Header.Add(key, value)
-		}
+	var client *fasthttp.Client
+	readTimeout, _ := time.ParseDuration("500ms")
+	writeTimeout, _ := time.ParseDuration("500ms")
+	maxIdleConnDuration, _ := time.ParseDuration("1h")
+	client = &fasthttp.Client{
+		ReadTimeout:                   readTimeout,
+		WriteTimeout:                  writeTimeout,
+		MaxIdleConnDuration:           maxIdleConnDuration,
+		NoDefaultUserAgentHeader:      true, // Don't send: User-Agent: fasthttp
+		DisableHeaderNamesNormalizing: true, // If you set the case on your headers correctly you can enable this
+		DisablePathNormalizing:        true,
+		// increase DNS cache time to an hour instead of default minute
+		Dial: (&fasthttp.TCPDialer{
+			Concurrency:      4096,
+			DNSCacheDuration: time.Hour,
+		}).Dial,
 	}
 
-	// Send the request to the target service
-	client := &http.Client{}
-	resp, err := client.Do(proxyReq)
-	if err != nil {
-		return err
+	req := fasthttp.AcquireRequest()
+	for key, value := range request.Headers {
+		req.Header.Set(key, value)
 	}
-	defer resp.Body.Close()
-
-	// Write response headers and status code from target service to response writer
-	for key, values := range resp.Header {
-		for _, value := range values {
-			w.Header().Add(key, value)
-		}
+	uri := fmt.Sprintf("%s://%s%s", targetURL.Scheme, targetURL.Host, targetURL.Path)
+	fmt.Printf("DEBUG Request: %s\n", uri)
+	req.SetRequestURI(uri)
+	req.Header.SetMethod(request.Method)
+	req.SetBodyRaw([]byte(request.Body))	
+	err := client.Do(req, resp)
+	fasthttp.ReleaseRequest(req)
+	if err == nil {
+		fmt.Printf("DEBUG Response: %s\n", resp.Body())
+	} else {
+		fmt.Fprintf(os.Stderr, "ERR Connection error: %v\n", err)
+		ctx.Error("Failed to forward request to service", http.StatusInternalServerError)
 	}	
-	io.Copy(w, resp.Body)
-	return nil
 }

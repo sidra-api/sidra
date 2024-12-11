@@ -71,10 +71,10 @@ func handleConnection(conn net.Conn) {
 		Body:       "Success",
 		Headers:    headers,
 	}
-	if request.Headers["bar"] != "bar" {
+	if request.Headers["Bar"] != "bar" {
 		response = lib.SidraResponse{
 			StatusCode: http.StatusForbidden,
-			Body:       "Failed",
+			Body:       "Unauthorized",
 			Headers:    headers,
 		}
 	}
