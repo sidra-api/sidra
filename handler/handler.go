@@ -22,6 +22,13 @@ func NewHandler(redisClient *redis.Client) *Handler {
 
 func (h *Handler) DefaultHandler() func(ctx *fasthttp.RequestCtx) {
 	return func(ctx *fasthttp.RequestCtx) {
+		if (string(ctx.Request.URI().Path()) == "/sidra/healthcheck") {
+			ctx.Response.Header.Set("Content-Type", "application/json")
+			ctx.Response.Header.Set("Server", "Sidra")
+			ctx.Response.SetStatusCode(http.StatusOK)
+			ctx.Response.SetBodyString("{\"status\":\"OK\"}")
+			return
+		}
 		key := string(ctx.Host()) + string(ctx.Request.URI().Path())
 		fmt.Println("root key:", key)
 		serviceName, err := h.redisClient.HGet(ctx, key, "serviceName").Result()
