@@ -5,7 +5,7 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/sidra-gateway/sidra-plugins-hub/lib"
+	"github.com/sidra-api/sidra/lib"
 )
 
 func (h *Handler) GoPlugin(pluginName string, request lib.SidraRequest) (response lib.SidraResponse) {	

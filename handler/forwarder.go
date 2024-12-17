@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/sidra-gateway/sidra-plugins-hub/lib"
+	"github.com/sidra-api/sidra/lib"
 	"github.com/valyala/fasthttp"
 )
 
