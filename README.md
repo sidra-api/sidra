@@ -29,4 +29,5 @@ Here are the steps to install Sidra via Helm chart:
 ## Docker
 
 ``` docker pull  ghcr.io/sidra-api/sidra:latest ```
+
 ``` docker run   ghcr.io/sidra-api/sidra --rm -p 8080:8080 -e dataplaneid=UUID ```
