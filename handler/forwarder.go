@@ -7,11 +7,11 @@ import (
 	"os"
 	"time"
 
-	"github.com/sidra-api/sidra/lib"
+	"github.com/sidra-api/sidra/dto"
 	"github.com/valyala/fasthttp"
 )
 
-func (h *Handler) ForwardToService(ctx *fasthttp.RequestCtx, request lib.SidraRequest, resp *fasthttp.Response, serviceName, servicePort string)  {
+func (h *Handler) ForwardToService(ctx *fasthttp.RequestCtx, request dto.SidraRequest, resp *fasthttp.Response, serviceName, servicePort string)  {
 	targetURL := &url.URL{
 		Scheme: "http",
 		Host:   serviceName + ":" + servicePort,

@@ -5,13 +5,13 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/sidra-api/sidra/lib"
+	"github.com/sidra-api/sidra/dto"
 )
 
-func (h *Handler) GoPlugin(pluginName string, request lib.SidraRequest) (response lib.SidraResponse) {	
+func (h *Handler) GoPlugin(pluginName string, request dto.SidraRequest) (response dto.SidraResponse) {	
 	conn, err := net.Dial("unix", "/tmp/"+pluginName+".sock")
 	if err != nil {
-		return lib.SidraResponse{
+		return dto.SidraResponse{
 			StatusCode: http.StatusInternalServerError,
 			Body:       "Failed to connect to plugin: " + pluginName		,
 		}

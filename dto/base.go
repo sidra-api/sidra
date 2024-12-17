@@ -1,4 +1,4 @@
-package lib
+package dto
 
 type SidraRequest struct {
 	Headers map[string]string

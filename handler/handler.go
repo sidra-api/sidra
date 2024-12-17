@@ -6,8 +6,7 @@ import (
 	"os/exec"
 	"strings"
 	
-	"github.com/sidra-api/sidra/dto"
-	"github.com/sidra-api/sidra/lib"
+	"github.com/sidra-api/sidra/dto"	
 	"github.com/valyala/fasthttp"	
 )
 
@@ -48,7 +47,7 @@ func (h *Handler) DefaultHandler() func(ctx *fasthttp.RequestCtx) {
 
 		requestBody := string(ctx.Request.Body())
 
-		request := lib.SidraRequest{
+		request := dto.SidraRequest{
 			Headers: map[string]string{},
 			Body:    requestBody,
 			Url:     string(ctx.Request.URI().Path()),
@@ -62,7 +61,7 @@ func (h *Handler) DefaultHandler() func(ctx *fasthttp.RequestCtx) {
 			request.Headers[k] = val
 		}		
 
-		var response lib.SidraResponse
+		var response dto.SidraResponse
 
 		// Jalankan plugin
 		for _, plugin := range strings.Split(plugins, ",") {
