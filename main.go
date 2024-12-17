@@ -4,24 +4,23 @@ import (
 	"log"
 	"os"
 
+	"github.com/sidra-api/sidra/dto"
+	"github.com/sidra-api/sidra/handler"
+	"github.com/sidra-api/sidra/scheduler"
 	"github.com/valyala/fasthttp"
-	redis "github.com/redis/go-redis/v9"
-	"github.com/sidra-gateway/sidra-plugins-hub/handler"
 )
 
 func main() {
-	rdb := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-		Password: "", // no password set
-		DB:       0,  // use default DB
-	})
-	h := handler.NewHandler(rdb)
+	dataSet := dto.NewDataPlane()
+	h := handler.NewHandler(dataSet)
 
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
 	}
-
+	go func ()  {
+		scheduler.NewJob(dataSet).Run()
+	}()
 	log.Println("Sidra plugin server is running on port:", port)
 	log.Fatal(fasthttp.ListenAndServe(":"+port, h.DefaultHandler()))
 }

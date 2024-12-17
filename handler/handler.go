@@ -5,19 +5,19 @@ import (
 	"net/http"
 	"os/exec"
 	"strings"
-
-	redis "github.com/redis/go-redis/v9"
-	"github.com/sidra-gateway/sidra-plugins-hub/lib"
-	"github.com/valyala/fasthttp"
+	
+	"github.com/sidra-api/sidra/dto"
+	"github.com/sidra-api/sidra/lib"
+	"github.com/valyala/fasthttp"	
 )
 
 type Handler struct {
-	redisClient *redis.Client
+	dataSet *dto.DataPlane
 }
 
-func NewHandler(redisClient *redis.Client) *Handler {
+func NewHandler(dataSet *dto.DataPlane) *Handler {
 	return &Handler{
-		redisClient,
+		dataSet,
 	}
 }
 
@@ -27,7 +27,7 @@ func (h *Handler) DefaultHandler() func(ctx *fasthttp.RequestCtx) {
 			ctx.Response.Header.Set("Content-Type", "application/json")
 			ctx.Response.Header.Set("Server", "Sidra")
 			
-			if !processExists("sidra-data-plane") {
+			if !processExists("redis") {
 				ctx.Response.SetStatusCode(http.StatusInternalServerError)
 				return
 			}
@@ -36,23 +36,15 @@ func (h *Handler) DefaultHandler() func(ctx *fasthttp.RequestCtx) {
 			return
 		}
 		key := string(ctx.Host()) + string(ctx.Request.URI().Path())
-		fmt.Println("root key:", key)
-		serviceName, err := h.redisClient.HGet(ctx, key, "serviceName").Result()
-		if err != nil {
-			ctx.Error("No Route found", http.StatusNotFound)
+		fmt.Println("route key:", key)
+		route, exists := h.dataSet.SerializeRoute[key]
+		if !exists {
+			ctx.Error("Route not found", http.StatusNotFound)
 			return
 		}
-
-		servicePort, err := h.redisClient.HGet(ctx, key, "servicePort").Result()
-		if err != nil {
-			ctx.Error("No Route found", http.StatusNotFound)
-			return
-		}
-
-		plugins, err := h.redisClient.HGet(ctx, key, "plugins").Result()
-		if err != nil {
-			plugins = ""
-		}
+		serviceName := route.UpstreamHost
+		servicePort := route.UpstreamPort
+		plugins := route.Plugins
 
 		requestBody := string(ctx.Request.Body())
 

@@ -4,17 +4,27 @@ FROM golang:1.23 AS builder
 # Set working directory di dalam container
 WORKDIR /app
 
-# Copy semua file source sidra-plugins-hub ke container
 COPY . .
 
-# Build binary untuk sidra-plugins-hub
-RUN go mod tidy && go build -o sidra-plugins-hub main.go
+RUN mkdir -p /app/bin/plugins
+
+RUN for dir in ./plugins/*; do \
+    if [ -d "$dir" ]; then \
+        echo "Building $(basename $dir)..."; \
+        cd $dir && go mod tidy && go build -o /app/bin/plugins/$(basename $dir); \
+        cd -; \
+    fi; \
+done
+
+
+RUN go mod tidy && go build -o sidra main.go
 
 # Gunakan image minimal untuk hasil akhir
 FROM alpine:latest
 
 # Copy binary dari stage builder ke stage ini
-COPY --from=builder /app/sidra-plugins-hub /usr/local/bin/sidra-plugins-hub
+COPY --from=builder /app/sidra /usr/local/bin/sidra
+COPY --from=builder /app/bin/plugins /usr/local/bin/plugins
 
 # Jalankan binary
-ENTRYPOINT ["/usr/local/bin/sidra-plugins-hub"]
+ENTRYPOINT ["/usr/local/bin/sidra"]
