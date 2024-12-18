@@ -29,9 +29,15 @@ func NewJob(dataSet *dto.DataPlane) *Job {
 	}
 }
 
+func (j *Job) InitialRun() {
+	j.register()
+	j.storeConfig()
+	j.setupPlugin()
+}
+
 func (j *Job) Run() {
-	gocron.Every(10).Second().Do(j.register())
-	gocron.Every(15).Second().Do(j.storeConfig())	
-	gocron.Every(20).Second().Do(j.setupPlugin())	
+	gocron.Every(10).Second().Do(j.register)
+	gocron.Every(15).Second().Do(j.storeConfig)	
+	gocron.Every(20).Second().Do(j.setupPlugin)	
 	<-gocron.Start()
 }

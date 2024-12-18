@@ -19,7 +19,9 @@ func main() {
 		port = "8080"
 	}
 	go func ()  {
-		scheduler.NewJob(dataSet).Run()
+		job := scheduler.NewJob(dataSet)
+		job.InitialRun()
+		job.Run()
 	}()
 	log.Println("Sidra plugin server is running on port:", port)
 	log.Fatal(fasthttp.ListenAndServe(":"+port, h.DefaultHandler()))
