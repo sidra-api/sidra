@@ -5,12 +5,14 @@ import "os"
 type DataPlane struct {
 	ID string `json:"id"`
 	SerializeRoute map[string]SerializeRoute `json:"SerializeRoute"`
+	Plugins map[string]Plugin `json:"Plugins"`
 }
 
 func NewDataPlane() *DataPlane {
 	return &DataPlane{
 		ID: os.Getenv("dataplaneid"),
 		SerializeRoute: make(map[string]SerializeRoute),
+		Plugins: make(map[string]Plugin),
 	}
 }
 

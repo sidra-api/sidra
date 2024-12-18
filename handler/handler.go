@@ -2,8 +2,7 @@ package handler
 
 import (
 	"fmt"
-	"net/http"
-	"os/exec"
+	"net/http"	
 	"strings"
 	
 	"github.com/sidra-api/sidra/dto"	
@@ -24,12 +23,7 @@ func (h *Handler) DefaultHandler() func(ctx *fasthttp.RequestCtx) {
 	return func(ctx *fasthttp.RequestCtx) {
 		if (string(ctx.Request.URI().Path()) == "/sidra/healthcheck") {
 			ctx.Response.Header.Set("Content-Type", "application/json")
-			ctx.Response.Header.Set("Server", "Sidra")
-			
-			if !processExists("redis") {
-				ctx.Response.SetStatusCode(http.StatusInternalServerError)
-				return
-			}
+			ctx.Response.Header.Set("Server", "Sidra")					
 			ctx.Response.SetStatusCode(http.StatusOK)
 			ctx.Response.SetBodyString("{\"status\":\"OK\"}")
 			return
@@ -114,17 +108,4 @@ func (h *Handler) DefaultHandler() func(ctx *fasthttp.RequestCtx) {
 		fmt.Println("Response: ", string(resp.Body()))
 		fasthttp.ReleaseResponse(resp)	
 	}
-}
-
-func processExists(processName string) bool {
-	cmd := exec.Command("pgrep", "-x", processName)
-	output, err := cmd.Output()
-
-	// If `pgrep` finds the process, it returns its PID(s); otherwise, it returns an error.
-	if err != nil {
-		return false
-	}
-
-	// Check if the output is not empty
-	return strings.TrimSpace(string(output)) != ""
 }

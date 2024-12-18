@@ -13,9 +13,11 @@ import (
 )
 
 func (j *Job) register() func() {
+	fmt.Println("Task: register added")
 	return func() {
 		fmt.Println("Registering")
 		if _, err := os.Stat("/tmp/privatekey"); err == nil {
+			fmt.Println("Already registered")
 			return
 		}
 		body := map[string]string{
@@ -51,17 +53,21 @@ func (j *Job) register() func() {
 }
 
 func (j *Job) storeConfig() func() {
+	fmt.Println("Task: storeConfig added")
 	return func() {
 		fmt.Println("Storing Config")
 		if _, err := os.Stat("/tmp/privatekey"); err != nil {
+			fmt.Println("Not registered")
 			return
 		}
+		fmt.Println("url", j.controlPlaneHost + "/api/v1/get/gs/" + os.Getenv("dataplaneid"))
 		resp, err := http.Get(j.controlPlaneHost + "/api/v1/get/gs/" + os.Getenv("dataplaneid"))
 		if err != nil {
 			log.Default().Println("err", err)
 		}
 		defer resp.Body.Close()
 		if resp.StatusCode == http.StatusOK {
+			fmt.Println("dataplane", os.Getenv("dataplaneid"))
 			var response struct {
 				GatewayServices []string `json:"GatewayServices"`
 			}
@@ -77,6 +83,7 @@ func (j *Job) storeConfig() func() {
 				}
 				defer gsResp.Body.Close()
 				if gsResp.StatusCode == http.StatusOK {
+					fmt.Println("Stored gs", gsID)
 					gsData, err := io.ReadAll(gsResp.Body)
 					if err != nil {
 						log.Default().Println("err", err)
@@ -106,7 +113,11 @@ func (j *Job) storeConfig() func() {
 							CreatedAt:    route.CreatedAt,
 							UpdatedAt:    route.UpdatedAt,
 						}
+						fmt.Println("Stored route", key, j.dataSet.SerializeRoute[key])
 
+					}
+					for _, plugin := range gsDetail.Plugins {
+						j.dataSet.Plugins[plugin.Name] = plugin
 					}
 				}
 			}
