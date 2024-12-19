@@ -2,11 +2,11 @@ package handler
 
 import (
 	"fmt"
-	"net/http"	
+	"net/http"
 	"strings"
-	
-	"github.com/sidra-api/sidra/dto"	
-	"github.com/valyala/fasthttp"	
+
+	"github.com/sidra-api/sidra/dto"
+	"github.com/valyala/fasthttp"
 )
 
 type Handler struct {
@@ -15,26 +15,45 @@ type Handler struct {
 
 func NewHandler(dataSet *dto.DataPlane) *Handler {
 	return &Handler{
-		dataSet,
+		dataSet: dataSet,
 	}
 }
 
-func (h *Handler) DefaultHandler() func(ctx *fasthttp.RequestCtx) {
+func (h *Handler) DefaultHandler() fasthttp.RequestHandler {
 	return func(ctx *fasthttp.RequestCtx) {
-		if (string(ctx.Request.URI().Path()) == "/sidra/healthcheck") {
+		if string(ctx.Request.URI().Path()) == "/sidra/healthcheck" {
 			ctx.Response.Header.Set("Content-Type", "application/json")
-			ctx.Response.Header.Set("Server", "Sidra")					
+			ctx.Response.Header.Set("Server", "Sidra")
 			ctx.Response.SetStatusCode(http.StatusOK)
 			ctx.Response.SetBodyString("{\"status\":\"OK\"}")
 			return
 		}
-		key := string(ctx.Host()) + string(ctx.Request.URI().Path())
-		fmt.Println("route key:", key)
+
+		requestPath := string(ctx.Request.URI().Path())
+		key := string(ctx.Host()) + requestPath
 		route, exists := h.dataSet.SerializeRoute[key]
 		if !exists {
 			ctx.Error("Route not found", http.StatusNotFound)
 			return
 		}
+
+		if requestPath != "/" {
+			segments := strings.Split(requestPath, "/")
+
+			for i := 1; i <= len(segments); i++ {
+				path := strings.Join(segments[:i], "/")
+				if path == "" {
+					path = "/"
+				}
+				if r, ok := h.dataSet.SerializeRoute[string(ctx.Host())+path]; ok && r.PathType == "prefix" {
+					route = r
+					break
+				}
+			}
+		}
+
+		fmt.Println("route key:", key)
+
 		serviceName := route.UpstreamHost
 		servicePort := route.UpstreamPort
 		plugins := route.Plugins
@@ -42,22 +61,20 @@ func (h *Handler) DefaultHandler() func(ctx *fasthttp.RequestCtx) {
 		requestBody := string(ctx.Request.Body())
 
 		request := dto.SidraRequest{
-			Headers: map[string]string{},
+			Headers: make(map[string]string),
 			Body:    requestBody,
 			Url:     string(ctx.Request.URI().Path()),
 			Method:  string(ctx.Request.Header.Method()),
 		}
 
-		// Salin header
-		for _, key := range ctx.Request.Header.PeekKeys() {
-			k := string(key)
-			val := string(ctx.Request.Header.Peek(k))
-			request.Headers[k] = val
-		}		
+		// Copy headers
+		ctx.Request.Header.VisitAll(func(key, value []byte) {
+			request.Headers[string(key)] = string(value)
+		})
 
 		var response dto.SidraResponse
 
-		// Jalankan plugin
+		// Execute plugins
 		for _, plugin := range strings.Split(plugins, ",") {
 			if plugin == "" {
 				continue
@@ -79,33 +96,27 @@ func (h *Handler) DefaultHandler() func(ctx *fasthttp.RequestCtx) {
 				return
 			}
 		}
+
 		resp := fasthttp.AcquireResponse()
 		h.ForwardToService(ctx, request, resp, serviceName, servicePort)
-				
+
 		for _, plugin := range strings.Split(plugins, ",") {
 			if plugin == "" {
 				continue
 			}
 			response = h.GoPlugin(plugin+".response", request)
 		}
-		for key, values := range response.Headers {
-			resp.Header.Set(key, values)
-		}
-		for _, key := range resp.Header.PeekKeys() {
-			k := string(key)
-			val := string(resp.Header.Peek(k))
-			ctx.Response.Header.Set(k, val)
-		}
+
+		resp.Header.VisitAll(func(key, value []byte) {
+			ctx.Response.Header.Set(string(key), string(value))
+		})
+
 		ctx.Response.Header.Set("Content-Type", string(resp.Header.Peek("Content-Type")))
 		ctx.Response.Header.Set("Server", "Sidra")
-		for _, key := range resp.Header.PeekKeys() {
-			k := string(key)
-			val := string(resp.Header.Peek(k))
-			ctx.Response.Header.Set(k, val)
-		}
 		ctx.Response.SetStatusCode(resp.StatusCode())
-		ctx.Response.SetBody(resp.Body())		
+		ctx.Response.SetBody(resp.Body())
 		fmt.Println("Response: ", string(resp.Body()))
-		fasthttp.ReleaseResponse(resp)	
+
+		fasthttp.ReleaseResponse(resp)
 	}
 }
