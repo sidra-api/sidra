@@ -33,6 +33,7 @@ func (j *Job) InitialRun() {
 	j.register()
 	j.storeConfig()
 	j.setupPlugin()
+	j.loadConfig()
 }
 
 func (j *Job) Run() {

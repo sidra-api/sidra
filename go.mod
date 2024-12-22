@@ -11,4 +11,5 @@ require (
 require (
 	github.com/jasonlvhit/gocron v0.0.1
 	github.com/valyala/fasthttp v1.58.0
+	gopkg.in/yaml.v2 v2.2.2
 )

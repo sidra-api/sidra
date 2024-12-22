@@ -33,6 +33,7 @@ type SerializeRoute struct {
 	UpdatedAt    string `json:"updated_at"`
 }
 
+
 type GatewayServiceDetail struct {
 	GatewayService GatewayService `json:"GatewayService"`
 	Routes          []Route         `json:"Routes"`

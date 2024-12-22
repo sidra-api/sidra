@@ -32,10 +32,7 @@ func (h *Handler) DefaultHandler() fasthttp.RequestHandler {
 		requestPath := string(ctx.Request.URI().Path())
 		key := string(ctx.Host()) + requestPath
 		route, exists := h.dataSet.SerializeRoute[key]
-		if !exists {
-			ctx.Error("Route not found", http.StatusNotFound)
-			return
-		}
+		
 
 		if requestPath != "/" {
 			segments := strings.Split(requestPath, "/")
@@ -45,11 +42,18 @@ func (h *Handler) DefaultHandler() fasthttp.RequestHandler {
 				if path == "" {
 					path = "/"
 				}
+				fmt.Println("path:", path)
 				if r, ok := h.dataSet.SerializeRoute[string(ctx.Host())+path]; ok && r.PathType == "prefix" {
 					route = r
+					exists = true
 					break
 				}
 			}
+		}
+
+		if !exists {
+			ctx.Error("Route not found", http.StatusNotFound)
+			return
 		}
 
 		fmt.Println("route key:", key)
