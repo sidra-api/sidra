@@ -13,6 +13,9 @@ import (
 )
 
 func (j *Job) register() {
+	if os.Getenv("dataplaneid") == "" {		
+		return
+	}
 	fmt.Println("Registering")
 	if _, err := os.Stat("/tmp/privatekey"); err == nil {
 		fmt.Println("Already registered")
@@ -53,6 +56,9 @@ func (j *Job) storeConfig() {
 	fmt.Println("Storing Config")
 	if _, err := os.Stat("/tmp/privatekey"); err != nil {
 		fmt.Println("Not registered")
+		return
+	}
+	if os.Getenv("dataplaneid") == "" {		
 		return
 	}
 	fmt.Println("url", j.controlPlaneHost+"/api/v1/get/gs/"+os.Getenv("dataplaneid"))
