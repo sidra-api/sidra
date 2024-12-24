@@ -1,0 +1,14 @@
+GatewayService:
+  host: "test.sh:8080"
+Routes:
+  - methods: "GET,POST"
+    upstream_host: "localhost"
+    upstream_port: "8081"
+    path: "/api"
+    path_type: "prefix"
+    plugins: ""
+Plugins:
+  - name: "example-jwt"
+    type_plugin: "jwt"
+    enabled: 1
+    config: '{"key":"value"}'

@@ -75,22 +75,21 @@ Here are the steps to install Sidra via Helm chart:
 ## Example plugin
 
 ```yaml
-GatewayServiceDetail:
-  GatewayService:
-    Host: "test.sh:8080"
-  Routes:
-    - Methods: "GET,POST"
-      UpstreamHost: "localhost"
-      UpstreamPort: "8081"
-      Path: "/api"
-      PathType: "prefix"
-      Plugins: ""
-  Plugins:
-    - Name: "example-jwt"
-      TypePlugin: "jwt"
-      Enabled: 1
-      Config: "{/"key/":/"value/"}"
-      Protocols: "http,https"
+GatewayService:
+  host: "test.sh:8080"
+Routes:
+  - methods: "GET,POST"
+    upstream_host: "localhost"
+    upstream_port: "8081"
+    path: "/api"
+    path_type: "prefix"
+    plugins: ""
+Plugins:
+  - name: "example-jwt"
+    type_plugin: "jwt"
+    enabled: 1
+    config: '{"key":"value"}'
+
 ```
 
 ---
