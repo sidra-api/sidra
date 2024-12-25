@@ -25,7 +25,7 @@ jobs:
 
       - name: Execute bash clone.sh
         run: |
-          bash clone.sh
+          bash plugin-clone.sh
 
       # Log in to GitHub Docker Registry
       - name: Log in to GitHub Docker Registry

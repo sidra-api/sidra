@@ -1,8 +1,7 @@
 package scheduler
 
 import (
-	"flag"
-	"fmt"
+	"flag"	
 	"log"
 	"os"
 
@@ -15,6 +14,12 @@ func (j *Job) loadConfig() {
 
 	configPath := flag.String("config", "", "path to the config file")
 	flag.Parse()
+	if *configPath == "" {
+		if _, err := os.Stat("/tmp/config.yaml"); err == nil {
+			log.Default().Println("Config file found in /tmp/config.yaml")
+			*configPath = "/tmp/config.yaml"
+		}
+	}
 	if *configPath == "" {
 		log.Default().Println("No config file provided, use https://portal.sidra.id")
 		return
