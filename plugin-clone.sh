@@ -9,6 +9,7 @@ repos=(
     "https://github.com/sidra-api/plugin-whitelist.git"
     "https://github.com/sidra-api/plugin-cache.git"
     "https://github.com/sidra-api/plugin-rsa.git"
+    "https://github.com/sidra-api/plugin-azure-jwt.git"
 )
 
 for repo in "${repos[@]}"; do
