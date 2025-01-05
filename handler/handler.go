@@ -70,7 +70,9 @@ func (h *Handler) DefaultHandler() fasthttp.RequestHandler {
 			Url:     string(ctx.Request.URI().Path()),
 			Method:  string(ctx.Request.Header.Method()),
 		}
-
+		// Get client IP address
+		clientIP := string(ctx.RemoteIP())		
+		request.Headers["X-Real-Ip"] = clientIP
 		// Copy headers
 		ctx.Request.Header.VisitAll(func(key, value []byte) {
 			request.Headers[string(key)] = string(value)
