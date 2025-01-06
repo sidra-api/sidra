@@ -12,7 +12,7 @@ import (
 )
 
 func main() {
-	version := "v1.0.0"
+	version := "v1.0.1"
 	fmt.Println("Sidra plugin server is running  " + version)
 	dataSet := dto.NewDataPlane()
 	h := handler.NewHandler(dataSet)

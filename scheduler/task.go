@@ -16,7 +16,7 @@ func (j *Job) register() {
 	if os.Getenv("dataplaneid") == "" {		
 		return
 	}
-	fmt.Println("Registering")
+	fmt.Println("[TASK] Registering")
 	if _, err := os.Stat("/tmp/privatekey"); err == nil {
 		fmt.Println("Already registered")
 		return
@@ -52,15 +52,14 @@ func (j *Job) register() {
 
 }
 
-func (j *Job) storeConfig() {
-	fmt.Println("Storing Config")
-	if _, err := os.Stat("/tmp/privatekey"); err != nil {
-		fmt.Println("Not registered")
+func (j *Job) storeConfig() {	
+	if _, err := os.Stat("/tmp/privatekey"); err != nil {		
 		return
 	}
 	if os.Getenv("dataplaneid") == "" {		
 		return
 	}
+	fmt.Println("[TASK] load config from dataplaneid", os.Getenv("dataplaneid"))
 	fmt.Println("url", j.controlPlaneHost+"/api/v1/get/gs/"+os.Getenv("dataplaneid"))
 	resp, err := http.Get(j.controlPlaneHost + "/api/v1/get/gs/" + os.Getenv("dataplaneid"))
 	if err != nil {

@@ -21,7 +21,7 @@ func (j *Job) loadConfig() {
 		}
 	}
 	if *configPath == "" {
-		log.Default().Println("No config file provided, use https://portal.sidra.id")
+		log.Default().Println("[TASK] No config file provided")
 		return
 	}
 	data, err := os.ReadFile(*configPath)

@@ -8,11 +8,11 @@ import (
 )
 
 func (j *Job) setupPlugin() {
-	fmt.Println("Setting up plugin")
-	if _, err := os.Stat("/tmp/privatekey"); err != nil {
-		fmt.Println("Not registered")
+	fmt.Println("[TASK]Setting up plugin..")
+	if _, err := os.Stat("/tmp/privatekey"); err != nil {		
 		return
 	}
+	fmt.Println("Installed Plugins number : ", len(j.dataSet.Plugins))
 	for _, plugin := range j.dataSet.Plugins {
 		fmt.Println("- checking plugin", plugin)
 		basePath := ""
