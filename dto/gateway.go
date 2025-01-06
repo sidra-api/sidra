@@ -53,10 +53,10 @@ type Route struct {
 	Tags         string `json:"tags" yaml:"tags"`
 	Methods      string `json:"methods" yaml:"methods"`
 	UpstreamHost string `json:"upstream_host" yaml:"upstream_host"`
-	UpstreamPort string `json:"upstream_port" yaml:"upstream_port"`
+	UpstreamPort int `json:"upstream_port" yaml:"upstream_port"`
 	Path         string `json:"path" yaml:"path"`
-	PathType     string `json:"path_type" yaml:"path_type"`
-	Plugins      string `json:"plugins" yaml:"plugins"`
+	PathType     string `json:"pathType" yaml:"path_type"`
+	Plugins      []string `json:"plugins" yaml:"plugins"`
 	Expression   string `json:"expression" yaml:"expression"`
 	CreatedAt    string `json:"created_at" yaml:"created_at"`
 	UpdatedAt    string `json:"updated_at" yaml:"updated_at"`
@@ -76,7 +76,7 @@ type Consumer struct {
 type Plugin struct {
 	ID         string `json:"id" yaml:"id"`
 	GatewayID  string `json:"gateway_id" yaml:"gateway_id"`
-	Name       string `json:"name" yaml:"name"`
+	Name       string `json:"name_plugin" yaml:"name"`
 	TypePlugin string `json:"type_plugin" yaml:"type_plugin"`
 	Enabled    int    `json:"enabled" yaml:"enabled"`
 	Config     string `json:"config" yaml:"config"`

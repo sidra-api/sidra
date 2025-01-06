@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/sidra-api/sidra/dto"
 )
@@ -69,14 +70,15 @@ func (j *Job) storeConfig() {
 	if resp.StatusCode == http.StatusOK {
 		fmt.Println("dataplane", os.Getenv("dataplaneid"))
 		var response struct {
-			GatewayServices []string `json:"GatewayServices"`
+			GatewayServices []string `json:"gateway_service_id"`
 		}
 		err = json.NewDecoder(resp.Body).Decode(&response)
 		if err != nil {
 			log.Default().Println("err", err)
 		}
+		fmt.Println("Stored gs", response.GatewayServices)
 		for _, gsID := range response.GatewayServices {
-			fmt.Println("url", j.controlPlaneHost+"/api/v1/config/"+gsID)
+			fmt.Println("Gs Url", j.controlPlaneHost+"/api/v1/config/"+gsID)
 			gsResp, err := http.Get(j.controlPlaneHost + "/api/v1/config/" + gsID)
 			if err != nil {
 				log.Default().Println("api err", err)
@@ -106,14 +108,15 @@ func (j *Job) storeConfig() {
 						Tags:         route.Tags,
 						Methods:      route.Methods,
 						UpstreamHost: route.UpstreamHost,
-						UpstreamPort: route.UpstreamPort,
+						UpstreamPort: fmt.Sprintf("%d", route.UpstreamPort),
 						Path:         route.Path,
 						PathType:     route.PathType,
-						Plugins:      route.Plugins,
+						Plugins:      strings.Join(route.Plugins, ","),
 						Expression:   route.Expression,
 						CreatedAt:    route.CreatedAt,
 						UpdatedAt:    route.UpdatedAt,
 					}
+					fmt.Println("pathType", route.PathType)
 					fmt.Println("Stored route", key, j.dataSet.SerializeRoute[key])
 
 				}

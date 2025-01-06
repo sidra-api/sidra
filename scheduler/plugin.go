@@ -30,10 +30,12 @@ func (j *Job) setupPlugin() {
 			fmt.Println("- Failed to parse plugin config", plugin.TypePlugin, plugin.Config, err)
 			continue
 		}
-		cmd := exec.Command(basePath+"plugin_"+plugin.TypePlugin, "")
+		env["PLUGIN_NAME"] = plugin.Name
+		cmd := exec.Command(basePath+"plugin_plugin-"+plugin.TypePlugin, "")
 		for key, value := range env {
 			cmd.Env = append(cmd.Env, key+"="+value)
 		}
+		fmt.Println("- Starting plugin", cmd.Env)
 		err = cmd.Start()
 		if err != nil {
 			fmt.Println("- Failed to start plugin", plugin.TypePlugin, err)

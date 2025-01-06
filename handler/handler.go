@@ -42,21 +42,23 @@ func (h *Handler) DefaultHandler() fasthttp.RequestHandler {
 				if path == "" {
 					path = "/"
 				}
-				fmt.Println("path:", path)
-				if r, ok := h.dataSet.SerializeRoute[string(ctx.Host())+path]; ok && r.PathType == "prefix" {
+				fmt.Println("path:", path, string(ctx.Host())+path)
+				r := h.dataSet.SerializeRoute[string(ctx.Host())+path];
+				fmt.Println("Route:", r)
+				if r.PathType == "prefix" {					
 					route = r
+					fmt.Println("Route found: ", route)
 					exists = true
 					break
 				}
 			}
 		}
-
+		fmt.Println("All routes: ", h.dataSet.SerializeRoute)	
 		if !exists {
 			ctx.Error("Route not found", http.StatusNotFound)
 			return
 		}
-
-		fmt.Println("route key:", key)
+		
 
 		serviceName := route.UpstreamHost
 		servicePort := route.UpstreamPort

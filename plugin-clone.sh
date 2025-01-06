@@ -15,5 +15,5 @@ repos=(
 for repo in "${repos[@]}"; do
     repo_name=$(basename "$repo" .git)
     git clone "$repo" "./plugins/$repo_name"
-    cd "./plugins/$repo_name" && go build -o plugin_$&& cd ../../
+    cd "./plugins/$repo_name" && go build -o plugin_$repo_name && cd ../../
 done

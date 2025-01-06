@@ -1,9 +1,11 @@
 package scheduler
 
 import (
-	"flag"	
+	"flag"
 	"log"
 	"os"
+	"strconv"
+	"strings"
 
 	"github.com/sidra-api/sidra/dto"
 	"gopkg.in/yaml.v2"
@@ -42,11 +44,11 @@ func (j *Job) loadConfig() {
 			Name:         route.Name,
 			Tags:         route.Tags,
 			Methods:      route.Methods,
+			UpstreamPort: strconv.Itoa(route.UpstreamPort),
 			UpstreamHost: route.UpstreamHost,
-			UpstreamPort: route.UpstreamPort,
 			Path:         route.Path,
 			PathType:     route.PathType,
-			Plugins:      route.Plugins,
+			Plugins:      strings.Join(route.Plugins, ","),
 			Expression:   route.Expression,
 			CreatedAt:    route.CreatedAt,
 			UpdatedAt:    route.UpdatedAt,
