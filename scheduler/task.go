@@ -76,6 +76,7 @@ func (j *Job) storeConfig() {
 			log.Default().Println("err", err)
 		}
 		for _, gsID := range response.GatewayServices {
+			fmt.Println("url", j.controlPlaneHost+"/api/v1/config/"+gsID)
 			gsResp, err := http.Get(j.controlPlaneHost + "/api/v1/config/" + gsID)
 			if err != nil {
 				log.Default().Println("api err", err)
