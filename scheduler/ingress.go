@@ -28,7 +28,7 @@ func (j *Job) getIngress() {
 
 	if len(ingresses.Items) > 0 {
 		for _, ing := range ingresses.Items {
-			if ing.Spec.IngressClassName != nil && *ing.Spec.IngressClassName != "sidra" {
+			if ing.Spec.IngressClassName == nil || *ing.Spec.IngressClassName != "sidra" {
 				continue
 			}
 			if *ing.Spec.IngressClassName == "sidra" {
