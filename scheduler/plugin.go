@@ -14,6 +14,9 @@ func (j *Job) setupPlugin() {
 	}
 	fmt.Println("Installed Plugins number : ", len(j.dataSet.Plugins))
 	for _, plugin := range j.dataSet.Plugins {
+		if (plugin.Enabled == 0) {
+			continue
+		}
 		fmt.Println("- checking plugin", plugin)
 		basePath := ""
 		if _, err := os.Stat("/usr/local/bin/plugin_" + plugin.TypePlugin); err != nil {
