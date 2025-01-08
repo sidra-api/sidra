@@ -1,8 +1,9 @@
 package handler
 
 import (
+	"encoding/json"
 	"fmt"
-	"net/http"
+	"log"	
 	"net/url"
 	"os"
 	"time"
@@ -18,9 +19,12 @@ func (h *Handler) ForwardToService(ctx *fasthttp.RequestCtx, request dto.SidraRe
 		Path:   request.Url,
 	}
 
+	jsonBody, _ := json.Marshal(targetURL)
+	log.Default().Println("DEBUG Target Url: ", string(jsonBody))
+
 	var client *fasthttp.Client
-	readTimeout, _ := time.ParseDuration("500ms")
-	writeTimeout, _ := time.ParseDuration("500ms")
+	readTimeout, _ := time.ParseDuration("1500ms")
+	writeTimeout, _ := time.ParseDuration("1500ms")
 	maxIdleConnDuration, _ := time.ParseDuration("1h")
 	client = &fasthttp.Client{
 		ReadTimeout:                   readTimeout,
@@ -37,20 +41,23 @@ func (h *Handler) ForwardToService(ctx *fasthttp.RequestCtx, request dto.SidraRe
 	}
 
 	req := fasthttp.AcquireRequest()
-	for key, value := range request.Headers {
-		req.Header.Set(key, value)
+	req.SetRequestURI(fmt.Sprintf("%s://%s%s", targetURL.Scheme, targetURL.Host, targetURL.Path))
+	req.Header.SetMethod(fasthttp.MethodGet)
+	response := fasthttp.AcquireResponse()
+	for k,v  := range request.Headers {
+		if v == "" {
+			continue
+		}		
+		fmt.Printf("DEBUG Header: %s: %s\n", k, v);
+		req.Header.Add(k, v)
 	}
-	uri := fmt.Sprintf("%s://%s%s", targetURL.Scheme, targetURL.Host, targetURL.Path)
-	fmt.Printf("DEBUG Request: %s\n", uri)
-	req.SetRequestURI(uri)
-	req.Header.SetMethod(request.Method)
-	req.SetBodyRaw([]byte(request.Body))	
 	err := client.Do(req, resp)
 	fasthttp.ReleaseRequest(req)
 	if err == nil {
 		fmt.Printf("DEBUG Response: %s\n", resp.Body())
 	} else {
 		fmt.Fprintf(os.Stderr, "ERR Connection error: %v\n", err)
-		ctx.Error("Failed to forward request to service", http.StatusInternalServerError)
-	}	
+	}
+	resp = response
+	fasthttp.ReleaseResponse(resp)
 }

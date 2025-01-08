@@ -53,7 +53,7 @@ type Route struct {
 	Tags         string `json:"tags" yaml:"tags"`
 	Methods      string `json:"methods" yaml:"methods"`
 	UpstreamHost string `json:"upstream_host" yaml:"upstream_host"`
-	UpstreamPort int `json:"upstream_port" yaml:"upstream_port"`
+	UpstreamPort string `json:"upstream_port" yaml:"upstream_port"`
 	Path         string `json:"path" yaml:"path"`
 	PathType     string `json:"pathType" yaml:"path_type"`
 	Plugins      []string `json:"plugins" yaml:"plugins"`

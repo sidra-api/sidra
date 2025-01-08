@@ -20,7 +20,7 @@ func (h *Handler) GoPlugin(pluginName string, request dto.SidraRequest) (respons
 
 	requestBytes, _ := json.Marshal(request)
 	conn.Write(requestBytes)
-	buffer := make([]byte, 32768)
+	buffer := make([]byte, 602768)
 	n, _ := conn.Read(buffer[0:])
 	json.Unmarshal(buffer[:n], &response)
 	return response

@@ -4,7 +4,7 @@ import (
 	"flag"
 	"log"
 	"os"
-	"strconv"
+	
 	"strings"
 
 	"github.com/sidra-api/sidra/dto"
@@ -44,7 +44,7 @@ func (j *Job) loadConfig() {
 			Name:         route.Name,
 			Tags:         route.Tags,
 			Methods:      route.Methods,
-			UpstreamPort: strconv.Itoa(route.UpstreamPort),
+			UpstreamPort: route.UpstreamPort,
 			UpstreamHost: route.UpstreamHost,
 			Path:         route.Path,
 			PathType:     route.PathType,

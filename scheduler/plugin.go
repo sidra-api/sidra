@@ -34,7 +34,11 @@ func (j *Job) setupPlugin() {
 			continue
 		}
 		env["PLUGIN_NAME"] = plugin.Name
-		cmd := exec.Command(basePath+"plugin_plugin-"+plugin.TypePlugin, "")
+		if _, err := os.Stat("/tmp/" + plugin.Name + ".sock"); err == nil {
+			fmt.Println("- Plugin socket exists, skipping", plugin.Name)
+			continue
+		}
+		cmd := exec.Command(basePath+"plugin_plugin-"+plugin.TypePlugin)
 		for key, value := range env {
 			cmd.Env = append(cmd.Env, key+"="+value)
 		}

@@ -75,8 +75,7 @@ func (j *Job) storeConfig() {
 		err = json.NewDecoder(resp.Body).Decode(&response)
 		if err != nil {
 			log.Default().Println("err", err)
-		}
-		fmt.Println("Stored gs", response.GatewayServices)
+		}		
 		for _, gsID := range response.GatewayServices {
 			fmt.Println("Gs Url", j.controlPlaneHost+"/api/v1/config/"+gsID)
 			gsResp, err := http.Get(j.controlPlaneHost + "/api/v1/config/" + gsID)
@@ -108,7 +107,7 @@ func (j *Job) storeConfig() {
 						Tags:         route.Tags,
 						Methods:      route.Methods,
 						UpstreamHost: route.UpstreamHost,
-						UpstreamPort: fmt.Sprintf("%d", route.UpstreamPort),
+						UpstreamPort: route.UpstreamPort,
 						Path:         route.Path,
 						PathType:     route.PathType,
 						Plugins:      strings.Join(route.Plugins, ","),

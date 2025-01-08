@@ -2,6 +2,7 @@ package handler
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
 
@@ -31,8 +32,9 @@ func (h *Handler) DefaultHandler() fasthttp.RequestHandler {
 
 		requestPath := string(ctx.Request.URI().Path())
 		key := string(ctx.Host()) + requestPath
+		fmt.Println("key", key)
 		route, exists := h.dataSet.SerializeRoute[key]
-		
+		log.Default().Println("-------------BEGIN---------------")
 
 		if requestPath != "/" {
 			segments := strings.Split(requestPath, "/")
@@ -53,7 +55,8 @@ func (h *Handler) DefaultHandler() fasthttp.RequestHandler {
 				}
 			}
 		}
-		fmt.Println("All routes: ", h.dataSet.SerializeRoute)	
+		fmt.Println("route", route, exists)
+		fmt.Println("All routes", h.dataSet.SerializeRoute)
 		if !exists {
 			ctx.Error("Route not found", http.StatusNotFound)
 			return
@@ -73,7 +76,7 @@ func (h *Handler) DefaultHandler() fasthttp.RequestHandler {
 			Method:  string(ctx.Request.Header.Method()),
 		}
 		// Get client IP address
-		clientIP := string(ctx.RemoteIP())		
+		clientIP := strings.Split(ctx.RemoteAddr().String(), ":")[0]
 		request.Headers["X-Real-Ip"] = clientIP
 		// Copy headers
 		ctx.Request.Header.VisitAll(func(key, value []byte) {
@@ -106,8 +109,7 @@ func (h *Handler) DefaultHandler() fasthttp.RequestHandler {
 		}
 
 		resp := fasthttp.AcquireResponse()
-		h.ForwardToService(ctx, request, resp, serviceName, servicePort)
-
+		h.ForwardToService(ctx, request, resp, serviceName, servicePort)		
 		for _, plugin := range strings.Split(plugins, ",") {
 			if plugin == "" {
 				continue
@@ -122,9 +124,8 @@ func (h *Handler) DefaultHandler() fasthttp.RequestHandler {
 		ctx.Response.Header.Set("Content-Type", string(resp.Header.Peek("Content-Type")))
 		ctx.Response.Header.Set("Server", "Sidra")
 		ctx.Response.SetStatusCode(resp.StatusCode())
-		ctx.Response.SetBody(resp.Body())
-		fmt.Println("Response: ", string(resp.Body()))
-
+		ctx.Response.SetBody(resp.Body())		
+		log.Default().Println("--------------END---------------")
 		fasthttp.ReleaseResponse(resp)
 	}
 }
