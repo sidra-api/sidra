@@ -2,14 +2,48 @@
 
 Signup to https://portal.sidra.id
 
-## Standalone
+## Install Standalone / as Loadbalancer
 ```
-dataplanid=UUID ./sidra
+./sidra --config=./config.yaml
+or
+dataplanid=UUID ./sidra 
+or
+dataplanid=UUID ./sidra --config=./config.yaml
 ```
 
-## Kubernetes
+### Environtment Variable
 
-   
+```yaml
+dataplaneid: UUID
+SSL_ON: false (default false)
+SSL_CERT_FILE: /etc/ssl/certs/server.crt
+SSL_KEY_FILE: /etc/ssl/certs/server.key
+PORT: 8080
+SSL_PORT: 8433
+```
+
+## Example Config
+
+```yaml
+GatewayService:
+  host: "test.sh"
+Routes:
+  - methods: "GET,POST"
+    upstream_host: "localhost"
+    upstream_port: "8081"
+    path: "/api"
+    path_type: "prefix"
+    plugins: "example-jwt"
+Plugins:
+  - name: "example-jwt"
+    type_plugin: "jwt"
+    enabled: 1
+    config: '{"key":"value"}'
+
+```
+---
+
+## Install on Kubernetes (Helm)
 
 Here are the steps to install Sidra via Helm chart:
 
@@ -31,7 +65,7 @@ Here are the steps to install Sidra via Helm chart:
     helm upgrade --install sidra sid/sidra --set dataplaneid=UUID
     ```
 
-## Docker
+## Install on Docker
 
 ``` docker pull  ghcr.io/sidra-api/sidra:latest ```
 
@@ -73,26 +107,6 @@ Here are the steps to install Sidra via Helm chart:
 ``` docker pull  ghcr.io/sidra-api/sidra:latest ```
 
 ``` docker run   ghcr.io/sidra-api/sidra --rm -p 8080:8080 -v ./config.yaml:/tmp/config.yaml```
-
-## Example plugin
-
-```yaml
-GatewayService:
-  host: "test.sh:8080"
-Routes:
-  - methods: "GET,POST"
-    upstream_host: "localhost"
-    upstream_port: "8081"
-    path: "/api"
-    path_type: "prefix"
-    plugins: ""
-Plugins:
-  - name: "example-jwt"
-    type_plugin: "jwt"
-    enabled: 1
-    config: '{"key":"value"}'
-
-```
 
 ---
 

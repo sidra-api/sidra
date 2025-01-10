@@ -22,7 +22,7 @@ func main() {
 		port = "8080"
 	}
 
-	portSll := os.Getenv("PORT_SSL")
+	portSll := os.Getenv("SSL_PORT")
 	if portSll == "" {
 		portSll = "8443"
 	}
@@ -34,8 +34,14 @@ func main() {
 	log.Println("Sidra plugin server is running on port:", port)
 	go func() {
 		if os.Getenv("SSL_ON") == "true" {
-			certFile := os.Getenv("CERT_FILE")
-			keyFile := os.Getenv("KEY_FILE")
+			certFile := os.Getenv("SSL_CERT_FILE")
+			if certFile == "" {
+				certFile = "/etc/ssl/certs/server.crt"
+			}
+			keyFile := os.Getenv("SSL_KEY_FILE")
+			if keyFile == "" {
+				keyFile = "/etc/ssl/private/server.key"
+			}
 			log.Fatal(fasthttp.ListenAndServeTLS(":"+portSll, certFile, keyFile, h.DefaultHandler()))
 		}
 	}()
