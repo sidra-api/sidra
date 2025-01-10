@@ -9,18 +9,18 @@ import (
 
 func (j *Job) setupPlugin() {
 	fmt.Println("[TASK]Setting up plugin..")
-	if _, err := os.Stat("/tmp/privatekey"); err != nil {		
+	if _, err := os.Stat("/tmp/privatekey"); err != nil {
 		return
 	}
 	fmt.Println("Installed Plugins number : ", len(j.dataSet.Plugins))
 	for _, plugin := range j.dataSet.Plugins {
-		if (plugin.Enabled == 0) {
+		if plugin.Enabled == 0 {
 			continue
 		}
 		fmt.Println("- checking plugin", plugin)
-		basePath := ""
-		if _, err := os.Stat("/usr/local/bin/plugin_" + plugin.TypePlugin); err != nil {
-			if _, err := os.Stat("./plugins/plugin-" + plugin.TypePlugin); err != nil {
+		basePath := "/usr/local/bin/"
+		if _, err := os.Stat("/usr/local/bin/" + plugin.TypePlugin); err != nil {
+			if _, err := os.Stat("./plugins/" + plugin.TypePlugin); err != nil {
 				fmt.Println("Plugin does not exist")
 				continue
 			} else {
@@ -38,7 +38,7 @@ func (j *Job) setupPlugin() {
 			fmt.Println("- Plugin socket exists, skipping", plugin.Name)
 			continue
 		}
-		cmd := exec.Command(basePath+"plugin_plugin-"+plugin.TypePlugin)
+		cmd := exec.Command(basePath + plugin.TypePlugin)
 		for key, value := range env {
 			cmd.Env = append(cmd.Env, key+"="+value)
 		}

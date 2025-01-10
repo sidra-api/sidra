@@ -38,16 +38,15 @@ func (h *Handler) DefaultHandler() fasthttp.RequestHandler {
 
 		if requestPath != "/" {
 			segments := strings.Split(requestPath, "/")
-
 			for i := 1; i <= len(segments); i++ {
 				path := strings.Join(segments[:i], "/")
 				if path == "" {
 					path = "/"
 				}
 				fmt.Println("path:", path, string(ctx.Host())+path)
-				r := h.dataSet.SerializeRoute[string(ctx.Host())+path];
+				r := h.dataSet.SerializeRoute[string(ctx.Host())+path]
 				fmt.Println("Route:", r)
-				if r.PathType == "prefix" {					
+				if r.PathType == "prefix" {
 					route = r
 					fmt.Println("Route found: ", route)
 					exists = true
@@ -61,7 +60,6 @@ func (h *Handler) DefaultHandler() fasthttp.RequestHandler {
 			ctx.Error("Route not found", http.StatusNotFound)
 			return
 		}
-		
 
 		serviceName := route.UpstreamHost
 		servicePort := route.UpstreamPort
@@ -109,7 +107,7 @@ func (h *Handler) DefaultHandler() fasthttp.RequestHandler {
 		}
 
 		resp := fasthttp.AcquireResponse()
-		h.ForwardToService(ctx, request, resp, serviceName, servicePort)		
+		h.ForwardToService(ctx, request, resp, serviceName, servicePort)
 		for _, plugin := range strings.Split(plugins, ",") {
 			if plugin == "" {
 				continue
@@ -124,7 +122,7 @@ func (h *Handler) DefaultHandler() fasthttp.RequestHandler {
 		ctx.Response.Header.Set("Content-Type", string(resp.Header.Peek("Content-Type")))
 		ctx.Response.Header.Set("Server", "Sidra")
 		ctx.Response.SetStatusCode(resp.StatusCode())
-		ctx.Response.SetBody(resp.Body())		
+		ctx.Response.SetBody(resp.Body())
 		log.Default().Println("--------------END---------------")
 		fasthttp.ReleaseResponse(resp)
 	}
