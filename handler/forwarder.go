@@ -57,8 +57,8 @@ func (h *Handler) ForwardToService(ctx *fasthttp.RequestCtx, request dto.SidraRe
 		fmt.Printf("DEBUG Response: %s\n", resp.Body())
 	} else {
 		fmt.Fprintf(os.Stderr, "ERR Connection error: %v\n", err)
-		resp.SetStatusCode(fasthttp.StatusInternalServerError)
-		resp.SetBodyRaw([]byte("upstream error"))
+		response.SetStatusCode(fasthttp.StatusInternalServerError)
+		response.SetBodyRaw([]byte("upstream error"))
 	}
 	resp = response
 	fasthttp.ReleaseResponse(response)
