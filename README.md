@@ -9,6 +9,8 @@ dataplanid=UUID ./sidra
 
 ## Kubernetes
 
+   
+
 Here are the steps to install Sidra via Helm chart:
 
 1. **Add the Helm chart repository:**
