@@ -11,7 +11,7 @@ repos=(
     "https://github.com/sidra-api/plugin-rsa.git"
     "https://github.com/sidra-api/plugin-azure-jwt.git"
 )
-
+rm -rf ./plugins/* || true
 for repo in "${repos[@]}"; do
     repo_name=$(basename "$repo" .git)
     git clone "$repo" "./plugins/$repo_name"

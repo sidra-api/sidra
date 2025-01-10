@@ -14,7 +14,7 @@ Here are the steps to install Sidra via Helm chart:
 1. **Add the Helm chart repository:**
 
     ```bash
-    helm repo add sid https://sidra-api.github.io/sidra/charts
+    helm repo add sid https://sidra-api.github.io/sidra-helm/charts
     ```
 
 2. **Update the Helm chart repository:**
@@ -94,3 +94,21 @@ Plugins:
 
 ---
 
+## Install Custom Plugin
+
+### Step 1. Create Docker file
+```Dockerfile
+FROM ghcr.io/sidra-api/sidra:latest
+
+COPY YOUR_PLUGIN_BINARY /usr/local/bin/plugin_YOUR_PLUGIN_BINARY
+
+ENTRYPOINT ["sidra"]
+```
+
+### Step 2. Build Docker Image and Push to Registry
+```bash
+docker build -t sidra:latest .
+docker tag sidra:latest your_docker_repo:latest
+docker push your_docker_repo:latest
+
+```
