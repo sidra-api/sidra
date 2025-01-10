@@ -3,7 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
-	"log"	
+	"log"
 	"net/url"
 	"os"
 	"time"
@@ -12,7 +12,7 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-func (h *Handler) ForwardToService(ctx *fasthttp.RequestCtx, request dto.SidraRequest, resp *fasthttp.Response, serviceName, servicePort string)  {
+func (h *Handler) ForwardToService(ctx *fasthttp.RequestCtx, request dto.SidraRequest, resp *fasthttp.Response, serviceName, servicePort string) {
 	targetURL := &url.URL{
 		Scheme: "http",
 		Host:   serviceName + ":" + servicePort,
@@ -43,12 +43,12 @@ func (h *Handler) ForwardToService(ctx *fasthttp.RequestCtx, request dto.SidraRe
 	req := fasthttp.AcquireRequest()
 	req.SetRequestURI(fmt.Sprintf("%s://%s%s", targetURL.Scheme, targetURL.Host, targetURL.Path))
 	req.Header.SetMethod(fasthttp.MethodGet)
-	response := fasthttp.AcquireResponse()
-	for k,v  := range request.Headers {
+	resp = fasthttp.AcquireResponse()
+	for k, v := range request.Headers {
 		if v == "" {
 			continue
-		}		
-		fmt.Printf("DEBUG Header: %s: %s\n", k, v);
+		}
+		fmt.Printf("DEBUG Header: %s: %s\n", k, v)
 		req.Header.Add(k, v)
 	}
 	err := client.Do(req, resp)
@@ -57,7 +57,8 @@ func (h *Handler) ForwardToService(ctx *fasthttp.RequestCtx, request dto.SidraRe
 		fmt.Printf("DEBUG Response: %s\n", resp.Body())
 	} else {
 		fmt.Fprintf(os.Stderr, "ERR Connection error: %v\n", err)
+		resp.SetStatusCode(fasthttp.StatusBadGateway)
+		resp.SetBodyRaw([]byte("failed to connect to upstream"))
 	}
-	resp = response
 	fasthttp.ReleaseResponse(resp)
 }
