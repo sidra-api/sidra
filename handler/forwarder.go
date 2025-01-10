@@ -23,7 +23,7 @@ func (h *Handler) ForwardToService(ctx *fasthttp.RequestCtx, request dto.SidraRe
 	log.Default().Println("DEBUG Target Url: ", string(jsonBody))
 
 	var client *fasthttp.Client
-	readTimeout, _ := time.ParseDuration("15000ms")
+	readTimeout, _ := time.ParseDuration("1500ms")
 	writeTimeout, _ := time.ParseDuration("15000ms")
 	maxIdleConnDuration, _ := time.ParseDuration("1h")
 	client = &fasthttp.Client{
