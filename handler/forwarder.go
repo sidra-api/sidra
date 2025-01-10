@@ -43,7 +43,7 @@ func (h *Handler) ForwardToService(ctx *fasthttp.RequestCtx, request dto.SidraRe
 	req := fasthttp.AcquireRequest()
 	req.SetRequestURI(fmt.Sprintf("%s://%s%s", targetURL.Scheme, targetURL.Host, targetURL.Path))
 	req.Header.SetMethod(fasthttp.MethodGet)
-	resp = fasthttp.AcquireResponse()
+	response := fasthttp.AcquireResponse()
 	for k, v := range request.Headers {
 		if v == "" {
 			continue
@@ -51,13 +51,15 @@ func (h *Handler) ForwardToService(ctx *fasthttp.RequestCtx, request dto.SidraRe
 		fmt.Printf("DEBUG Header: %s: %s\n", k, v)
 		req.Header.Add(k, v)
 	}
-	err := client.Do(req, resp)
+	err := client.Do(req, response)
 	fasthttp.ReleaseRequest(req)
 	if err == nil {
 		fmt.Printf("DEBUG Response: %s\n", resp.Body())
 	} else {
 		fmt.Fprintf(os.Stderr, "ERR Connection error: %v\n", err)
-		resp.SetStatusCode(fasthttp.StatusBadGateway)
-		resp.SetBodyRaw([]byte("failed to connect to upstream"))
+		resp.SetStatusCode(fasthttp.StatusInternalServerError)
+		resp.SetBodyRaw([]byte("upstream error"))
 	}
+	resp = response
+	fasthttp.ReleaseResponse(response)
 }
