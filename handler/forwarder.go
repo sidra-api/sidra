@@ -60,5 +60,4 @@ func (h *Handler) ForwardToService(ctx *fasthttp.RequestCtx, request dto.SidraRe
 		resp.SetStatusCode(fasthttp.StatusBadGateway)
 		resp.SetBodyRaw([]byte("failed to connect to upstream"))
 	}
-	fasthttp.ReleaseResponse(resp)
 }
