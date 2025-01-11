@@ -1,5 +1,7 @@
 # Sidra Installation
 
+![Sidra Logo](https://avatars.githubusercontent.com/u/186585788?s=400&u=dc182693ac04a3d4061cefc1525dd0a25aa7e70a&v=4)
+
 ## Via Portal
 Signup to https://portal.sidra.id, create Dataplane and get Dataplane UUID
 
