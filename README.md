@@ -111,6 +111,31 @@ SSL_PORT: 8433
 
 # Plugin
 
+## Plugin Development with Go
+
+```go
+package main
+import (
+	"github.com/sidra-api/go-pdk/server"
+)
+
+func main() {
+	rsaValidator := server.NewServer(pluginName, handleRequest)
+	if err := rsaValidator.Start(); err != nil {
+		log.Fatalf("ERROR: Failed to start server: %v\n", err)
+	}
+}
+
+func handleRequest(req server.Request) server.Response {
+    // Your code here
+    return server.Response{
+        StatusCode: 401,
+        Body:       "Unauthorized",
+    }
+}
+
+```
+
 ## Install Custom Plugin on Docker
 
 ### Step 1. Create Docker file
