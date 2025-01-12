@@ -180,3 +180,9 @@ or
 ### Register Plugin via https://portal.sidra.id 
 
 as admin access menu plugin_types, then create new plugin_type
+
+---
+
+# Monitoring
+
+prometheus live on `SIDRA_HOST:9100/metrics`

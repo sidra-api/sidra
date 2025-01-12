@@ -4,17 +4,15 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/sidra-api/sidra/dto"
 	"io"
 	"log"
 	"net/http"
 	"os"
-	"strings"
-
-	"github.com/sidra-api/sidra/dto"
 )
 
 func (j *Job) register() {
-	if os.Getenv("dataplaneid") == "" {		
+	if os.Getenv("dataplaneid") == "" {
 		return
 	}
 	fmt.Println("[TASK] Registering")
@@ -53,11 +51,11 @@ func (j *Job) register() {
 
 }
 
-func (j *Job) storeConfig() {	
-	if _, err := os.Stat("/tmp/privatekey"); err != nil {		
+func (j *Job) storeConfig() {
+	if _, err := os.Stat("/tmp/privatekey"); err != nil {
 		return
 	}
-	if os.Getenv("dataplaneid") == "" {		
+	if os.Getenv("dataplaneid") == "" {
 		return
 	}
 	fmt.Println("[TASK] load config from dataplaneid", os.Getenv("dataplaneid"))
@@ -75,7 +73,7 @@ func (j *Job) storeConfig() {
 		err = json.NewDecoder(resp.Body).Decode(&response)
 		if err != nil {
 			log.Default().Println("err", err)
-		}		
+		}
 		for _, gsID := range response.GatewayServices {
 			fmt.Println("Gs Url", j.controlPlaneHost+"/api/v1/config/"+gsID)
 			gsResp, err := http.Get(j.controlPlaneHost + "/api/v1/config/" + gsID)
@@ -110,7 +108,7 @@ func (j *Job) storeConfig() {
 						UpstreamPort: route.UpstreamPort,
 						Path:         route.Path,
 						PathType:     route.PathType,
-						Plugins:      strings.Join(route.Plugins, ","),
+						Plugins:      route.Plugins,
 						Expression:   route.Expression,
 						CreatedAt:    route.CreatedAt,
 						UpdatedAt:    route.UpdatedAt,

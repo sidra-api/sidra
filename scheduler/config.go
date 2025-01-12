@@ -4,8 +4,6 @@ import (
 	"flag"
 	"log"
 	"os"
-	
-	"strings"
 
 	"github.com/sidra-api/sidra/dto"
 	"gopkg.in/yaml.v2"
@@ -23,18 +21,18 @@ func (j *Job) loadConfig() {
 		}
 	}
 	if *configPath == "" {
-		log.Default().Println("[TASK] No config file provided")
+		log.Default().Println("[CONFIG] No config file provided")
 		return
 	}
 	data, err := os.ReadFile(*configPath)
 	if err != nil {
 		log.Default().Println(err, "Error reading the file")
-	}	
+	}
 	// Unmarshal the YAML data into the config struct
 	err = yaml.Unmarshal(data, &gsDetail)
 	if err != nil {
 		log.Default().Println(err, "Error unmarshalling the data")
-	}	
+	}
 	for _, route := range gsDetail.Routes {
 		key := gsDetail.GatewayService.Host + route.Path
 		j.dataSet.SerializeRoute[key] = dto.SerializeRoute{
@@ -48,11 +46,12 @@ func (j *Job) loadConfig() {
 			UpstreamHost: route.UpstreamHost,
 			Path:         route.Path,
 			PathType:     route.PathType,
-			Plugins:      strings.Join(route.Plugins, ","),
+			Plugins:      route.Plugins,
 			Expression:   route.Expression,
 			CreatedAt:    route.CreatedAt,
 			UpdatedAt:    route.UpdatedAt,
 		}
+		log.Default().Println("Added route", key, j.dataSet.SerializeRoute[key])
 
 	}
 }

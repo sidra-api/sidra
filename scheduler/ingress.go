@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"strings"
 
 	"github.com/sidra-api/sidra/dto"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -38,7 +39,7 @@ func (j *Job) getIngress() {
 							key := rule.Host + path.Path
 							j.dataSet.SerializeRoute[key] = dto.SerializeRoute{
 								Host:         rule.Host,
-								Plugins:      ing.Annotations["konghq.com/plugins"],
+								Plugins:      strings.Split(ing.Annotations["konghq.com/plugins"], ","),
 								UpstreamHost: path.Backend.Service.Name,
 								UpstreamPort: strconv.Itoa(int(path.Backend.Service.Port.Number)),
 								Path:         path.Path,
