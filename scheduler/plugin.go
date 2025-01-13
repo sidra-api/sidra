@@ -18,9 +18,9 @@ func (j *Job) setupPlugin() {
 			continue
 		}
 		fmt.Println("- checking plugin", plugin)
-		basePath := "/usr/local/bin/"
-		if _, err := os.Stat("/usr/local/bin/" + plugin.TypePlugin); err != nil {
-			if _, err := os.Stat("./plugins/" + plugin.TypePlugin); err != nil {
+		basePath := "./plugins/plugin-" + plugin.TypePlugin + "/"
+		if _, err := os.Stat("/usr/local/bin/" + plugin.TypePlugin); err != nil {			
+			if _, err := os.Stat("./plugins/plugin-" + plugin.TypePlugin+"/"+plugin.TypePlugin); err != nil {
 				fmt.Println("Plugin does not exist")
 				continue
 			} else {

@@ -99,7 +99,8 @@ func (h *Handler) createSidraRequest(ctx *fasthttp.RequestCtx) dto.SidraRequest 
 		Method:  string(ctx.Request.Header.Method()),
 	}
 	clientIP := strings.Split(ctx.RemoteAddr().String(), ":")[0]
-	request.Headers["X-Real-Ip"] = clientIP
+	request.Headers["X-Real-IP"] = clientIP
+	log.Default().Println("ClientIP", clientIP)
 	ctx.Request.Header.VisitAll(func(key, value []byte) {
 		request.Headers[string(key)] = string(value)
 	})
