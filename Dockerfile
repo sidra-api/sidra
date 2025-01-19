@@ -19,6 +19,9 @@ RUN for dir in /app/plugins/*; do \
     fi; \
 done
 
+COPY tls/mycert.crt /etc/ssl/certs/server.crt
+
+COPY tls/mykey.key /etc/ssl/private/server.key
 
 RUN go mod tidy && go build -ldflags="-s -w" -o /usr/local/bin/sidra main.go
 

@@ -62,17 +62,15 @@ func main() {
 		job.Run()
 	}()
 	go func() {
-		if os.Getenv("SSL_ON") == "true" {
-			certFile := os.Getenv("SSL_CERT_FILE")
-			if certFile == "" {
-				certFile = "/etc/ssl/certs/server.crt"
-			}
-			keyFile := os.Getenv("SSL_KEY_FILE")
-			if keyFile == "" {
-				keyFile = "/etc/ssl/private/server.key"
-			}
-			log.Fatal(fasthttp.ListenAndServeTLS(":"+portSll, certFile, keyFile, h.DefaultHandler()))
+		certFile := os.Getenv("SSL_CERT_FILE")
+		if certFile == "" {
+			certFile = "/etc/ssl/certs/server.crt"
 		}
+		keyFile := os.Getenv("SSL_KEY_FILE")
+		if keyFile == "" {
+			keyFile = "/etc/ssl/private/server.key"
+		}
+		log.Fatal(fasthttp.ListenAndServeTLS(":"+portSll, certFile, keyFile, h.DefaultHandler()))
 	}()
 	go func() {
 		log.Fatal(fasthttp.ListenAndServe(":"+port, h.DefaultHandler()))
