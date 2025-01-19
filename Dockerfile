@@ -7,7 +7,8 @@ WORKDIR /app
 COPY . .
 
 RUN mkdir -p /app/bin/plugins
-
+RUN mkdir -p /etc/ssl/certs
+RUN mkdir -p /etc/ssl/private
 RUN mkdir -p /usr/local/bin
 
 # Build all plugins
