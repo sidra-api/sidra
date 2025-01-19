@@ -7,8 +7,6 @@ WORKDIR /app
 COPY . .
 
 RUN mkdir -p /app/bin/plugins
-RUN mkdir -p /etc/ssl/certs
-RUN mkdir -p /etc/ssl/private
 RUN mkdir -p /usr/local/bin
 
 # Build all plugins
@@ -20,9 +18,9 @@ RUN for dir in /app/plugins/*; do \
     fi; \
 done
 
-COPY tls/mycert.crt /etc/ssl/certs/server.crt
+COPY tls/mycert.crt /tmp/server.crt
 
-COPY tls/mykey.key /etc/ssl/private/server.key
+COPY tls/mykey.key /tmp/server.key
 
 RUN go mod tidy && go build -ldflags="-s -w" -o /usr/local/bin/sidra main.go
 

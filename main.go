@@ -64,11 +64,11 @@ func main() {
 	go func() {
 		certFile := os.Getenv("SSL_CERT_FILE")
 		if certFile == "" {
-			certFile = "/etc/ssl/certs/server.crt"
+			certFile = "/tmp/server.crt"
 		}
 		keyFile := os.Getenv("SSL_KEY_FILE")
 		if keyFile == "" {
-			keyFile = "/etc/ssl/private/server.key"
+			keyFile = "/tmp/server.key"
 		}
 		log.Fatal(fasthttp.ListenAndServeTLS(":"+portSll, certFile, keyFile, h.DefaultHandler()))
 	}()
