@@ -2,7 +2,6 @@ package scheduler
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"strconv"
 	"strings"
@@ -45,7 +44,6 @@ func (j *Job) getIngress() {
 								Path:         path.Path,
 								PathType:     string(*path.PathType),
 							}
-							fmt.Println("added route", key, j.dataSet.SerializeRoute[key])
 						}
 					}
 				}

@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"encoding/json"
 	"github.com/prometheus/client_golang/prometheus"
 	"log"
 	"net/http"
@@ -33,7 +34,12 @@ func (h *Handler) DefaultHandler() fasthttp.RequestHandler {
 			h.handleHealthCheck(ctx)
 			return
 		}
-
+		if string(ctx.Request.URI().Path()) == "/endpoints" {
+			jsonResponse, _ := json.Marshal(h.dataSet.SerializeRoute)
+			log.Default().Println("endpoints", string(jsonResponse))
+			ctx.Response.SetStatusCode(200)
+			ctx.Response.SetBody(jsonResponse)
+		}
 		startTime := time.Now()
 		route, exists := h.findRoute(ctx)
 		if !exists {
@@ -71,7 +77,9 @@ func (h *Handler) findRoute(ctx *fasthttp.RequestCtx) (dto.SerializeRoute, bool)
 	requestPath := string(ctx.Request.URI().Path())
 	key := string(ctx.Host()) + requestPath
 	route, exists := h.dataSet.SerializeRoute[key]
-
+	if exists {
+		return route, exists
+	}
 	if requestPath != "/" {
 		segments := strings.Split(requestPath, "/")
 		for i := 1; i <= len(segments); i++ {
@@ -153,7 +161,6 @@ func (h *Handler) forwardRequest(ctx *fasthttp.RequestCtx, request dto.SidraRequ
 	ctx.Response.Header.Set("Server", "Sidra")
 	ctx.Response.SetStatusCode(resp.StatusCode())
 	ctx.Response.SetBody(resp.Body())
-	log.Default().Println("--------------END---------------")
 	h.httpStatusCounter.WithLabelValues(strconv.Itoa(response.StatusCode), request.Url, string(ctx.Host()), dataplane, gs).Inc()
 	h.requestDuration.WithLabelValues(request.Url, string(ctx.Host()), dataplane, gs).Observe(time.Since(startTime).Seconds())
 	fasthttp.ReleaseResponse(resp)

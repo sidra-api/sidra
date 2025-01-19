@@ -42,7 +42,6 @@ func (h *Handler) ForwardToService(ctx *fasthttp.RequestCtx, request dto.SidraRe
 
 	req := fasthttp.AcquireRequest()
 	req.SetRequestURI(fmt.Sprintf("%s://%s%s", targetURL.Scheme, targetURL.Host, targetURL.Path))
-	req.Header.SetMethod(fasthttp.MethodGet)
 	for k, v := range request.Headers {
 		if v == "" {
 			continue

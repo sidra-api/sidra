@@ -21,7 +21,6 @@ func (j *Job) loadConfig() {
 		}
 	}
 	if *configPath == "" {
-		log.Default().Println("[CONFIG] No config file provided")
 		return
 	}
 	data, err := os.ReadFile(*configPath)
@@ -51,7 +50,6 @@ func (j *Job) loadConfig() {
 			CreatedAt:    route.CreatedAt,
 			UpdatedAt:    route.UpdatedAt,
 		}
-		log.Default().Println("Added route", key, j.dataSet.SerializeRoute[key])
 
 	}
 }
