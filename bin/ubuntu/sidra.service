@@ -1,0 +1,20 @@
+[Unit]
+Description=Sidra Service
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/sidra
+Restart=always
+RestartSec=3
+User=root
+Group=root
+Environment=PATH=/usr/local/bin:/usr/bin:/bin
+Environment=dataplaneid=9def07b8-bfdf-4585-9e7b-e10d5f78fc2e
+Environment=SSL_CERT_FILE=/etc/letsencrypt/live/demo.sidra.id/fullchain.pem
+Environment=SSL_KEY_FILE=/etc/letsencrypt/live/demo.sidra.id/privkey.pem
+Environment=SSL_ON=true
+Environment=SSL_PORT=443
+
+[Install]
+WantedBy=multi-user.target
+
