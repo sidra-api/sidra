@@ -49,6 +49,8 @@ func (h *Handler) ForwardToService(ctx *fasthttp.RequestCtx, request dto.SidraRe
 		fmt.Printf("DEBUG Header: %s: %s\n", k, v)
 		req.Header.Add(k, v)
 	}
+	req.SetBody([]byte(request.Body))
+	req.Header.SetMethod(string(request.Method))
 	err := client.Do(req, resp)
 	fasthttp.ReleaseRequest(req)
 	if err == nil {
