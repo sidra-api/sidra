@@ -160,7 +160,7 @@ func (h *Handler) forwardRequest(ctx *fasthttp.RequestCtx, request dto.SidraRequ
 
 	ctx.Response.Header.Set("Content-Type", string(resp.Header.Peek("Content-Type")))
 	ctx.Response.Header.Set("Server", "Sidra")
-	ctx.Response.Header.Set("Location", string(ctx.Host()))
+	ctx.Response.Header.Set("Location", string(ctx.Request.URI().Path()))
 	ctx.Response.Header.Set("Host", string(ctx.Host()))
 	ctx.Response.SetStatusCode(resp.StatusCode())
 	ctx.Response.SetBody(resp.Body())
