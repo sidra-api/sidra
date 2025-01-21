@@ -1,9 +1,7 @@
 package handler
 
 import (
-	"encoding/json"
 	"fmt"
-	"log"
 	"net/url"
 	"os"
 	"time"
@@ -19,8 +17,11 @@ func (h *Handler) ForwardToService(ctx *fasthttp.RequestCtx, request dto.SidraRe
 		Path:   request.Url,
 	}
 
-	jsonBody, _ := json.Marshal(targetURL)
-	log.Default().Println("DEBUG Target Url: ", string(jsonBody))
+	// Extract query parameters from the original request
+	queryParams := ctx.QueryArgs().String()
+	if queryParams != "" {
+		targetURL.RawQuery = queryParams
+	}
 
 	var client *fasthttp.Client
 	readTimeout, _ := time.ParseDuration("30000ms")
@@ -41,7 +42,7 @@ func (h *Handler) ForwardToService(ctx *fasthttp.RequestCtx, request dto.SidraRe
 	}
 
 	req := fasthttp.AcquireRequest()
-	req.SetRequestURI(fmt.Sprintf("%s://%s%s", targetURL.Scheme, targetURL.Host, targetURL.Path))
+	req.SetRequestURI(fmt.Sprintf("%s://%s%s", targetURL.Scheme, targetURL.Host, targetURL.RequestURI()))
 	for k, v := range request.Headers {
 		if v == "" {
 			continue
@@ -53,9 +54,7 @@ func (h *Handler) ForwardToService(ctx *fasthttp.RequestCtx, request dto.SidraRe
 	req.Header.SetMethod(string(request.Method))
 	err := client.Do(req, resp)
 	fasthttp.ReleaseRequest(req)
-	if err == nil {
-		fmt.Printf("DEBUG Response: %s\n", resp.Body())
-	} else {
+	if err != nil {
 		fmt.Fprintf(os.Stderr, "ERR Connection error: %v\n", err)
 		resp.SetStatusCode(fasthttp.StatusInternalServerError)
 		resp.SetBodyRaw([]byte("upstream error"))
