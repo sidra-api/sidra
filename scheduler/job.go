@@ -1,13 +1,13 @@
 package scheduler
 
 import (
-	"os"
+	"github.com/jasonlvhit/gocron"
 	"github.com/sidra-api/sidra/dto"
-	"github.com/jasonlvhit/gocron"	
+	"os"
 )
 
 type Job struct {
-	dataSet *dto.DataPlane
+	dataSet          *dto.DataPlane
 	controlPlaneHost string
 }
 
@@ -23,7 +23,7 @@ func NewJob(dataSet *dto.DataPlane) *Job {
 	if controlPlaneHost == "" {
 		controlPlaneHost = "https://portal.sidra.id"
 	}
-	return &Job{		
+	return &Job{
 		dataSet,
 		controlPlaneHost,
 	}
@@ -37,9 +37,9 @@ func (j *Job) InitialRun() {
 }
 
 func (j *Job) Run() {
-	gocron.Every(10).Second().Do(j.register)
-	gocron.Every(15).Second().Do(j.storeConfig)	
-	gocron.Every(20).Second().Do(j.setupPlugin)	
-	gocron.Every(20).Second().Do(j.getIngress)	
+	gocron.Every(60).Second().Do(j.register)
+	gocron.Every(60).Second().Do(j.storeConfig)
+	gocron.Every(60).Second().Do(j.setupPlugin)
+	gocron.Every(60).Second().Do(j.getIngress)
 	<-gocron.Start()
 }

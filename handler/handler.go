@@ -39,6 +39,7 @@ func (h *Handler) DefaultHandler() fasthttp.RequestHandler {
 			log.Default().Println("endpoints", string(jsonResponse))
 			ctx.Response.SetStatusCode(200)
 			ctx.Response.SetBody(jsonResponse)
+			return
 		}
 		startTime := time.Now()
 		route, exists := h.findRoute(ctx)
