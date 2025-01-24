@@ -23,11 +23,11 @@ func (h *Handler) ForwardToService(ctx *fasthttp.RequestCtx, request dto.SidraRe
 		targetURL.RawQuery = queryParams
 	}
 
-	var client *fasthttp.Client
 	readTimeout, _ := time.ParseDuration("30000ms")
 	writeTimeout, _ := time.ParseDuration("30000ms")
 	maxIdleConnDuration, _ := time.ParseDuration("1h")
-	client = &fasthttp.Client{
+	client := &fasthttp.HostClient{
+		Addr:                          targetURL.Host,
 		ReadTimeout:                   readTimeout,
 		WriteTimeout:                  writeTimeout,
 		MaxIdleConnDuration:           maxIdleConnDuration,
@@ -42,7 +42,7 @@ func (h *Handler) ForwardToService(ctx *fasthttp.RequestCtx, request dto.SidraRe
 	}
 
 	req := fasthttp.AcquireRequest()
-	req.SetRequestURI(fmt.Sprintf("%s://%s%s", targetURL.Scheme, targetURL.Host, targetURL.RequestURI()))
+	req.SetRequestURI(fmt.Sprintf("%s", targetURL.RequestURI()))
 	for k, v := range request.Headers {
 		if v == "" {
 			continue
@@ -52,6 +52,7 @@ func (h *Handler) ForwardToService(ctx *fasthttp.RequestCtx, request dto.SidraRe
 	}
 	req.SetBody([]byte(request.Body))
 	req.Header.SetMethod(string(request.Method))
+	req.Header.SetHost("https://" + string(ctx.Host()))
 	err := client.Do(req, resp)
 	fasthttp.ReleaseRequest(req)
 	if err != nil {

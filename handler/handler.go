@@ -2,9 +2,11 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/prometheus/client_golang/prometheus"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -160,7 +162,19 @@ func (h *Handler) forwardRequest(ctx *fasthttp.RequestCtx, request dto.SidraRequ
 
 	ctx.Response.Header.Set("Content-Type", string(resp.Header.Peek("Content-Type")))
 	ctx.Response.Header.Set("Server", "Sidra")
-	ctx.Response.Header.Set("Location", string(ctx.Request.URI().Path()))
+	scheme := "http"
+	if ctx.IsTLS() {
+		scheme = "https"
+	}
+
+	// Set Location header to use the scheme from the original request and the path from the upstream response's Location header
+	upstreamLocation := string(resp.Header.Peek("Location"))
+	if upstreamLocation != "" {
+		parsedURL, err := url.Parse(upstreamLocation)
+		if err == nil {
+			ctx.Response.Header.Set("Location", fmt.Sprintf("%s://%s%s", scheme, ctx.Host(), parsedURL.Path))
+		}
+	}
 	ctx.Response.Header.Set("Host", string(ctx.Host()))
 	ctx.Response.SetStatusCode(resp.StatusCode())
 	ctx.Response.SetBody(resp.Body())
