@@ -42,6 +42,11 @@ func (h *Handler) ForwardToService(ctx *fasthttp.RequestCtx, request dto.SidraRe
 	}
 
 	req := fasthttp.AcquireRequest()
+	if ctx.IsTLS() {
+		req.Header.Set("X-Forwarded-Proto", "https")
+	} else {
+		req.Header.Set("X-Forwarded-Proto", "http")
+	}
 	req.SetRequestURI(fmt.Sprintf("%s", targetURL.RequestURI()))
 	for k, v := range request.Headers {
 		if v == "" {
@@ -52,7 +57,7 @@ func (h *Handler) ForwardToService(ctx *fasthttp.RequestCtx, request dto.SidraRe
 	}
 	req.SetBody([]byte(request.Body))
 	req.Header.SetMethod(string(request.Method))
-	req.Header.SetHost("https://" + string(ctx.Host()))
+	req.Header.SetHost(string(ctx.Host()))
 	err := client.Do(req, resp)
 	fasthttp.ReleaseRequest(req)
 	if err != nil {
