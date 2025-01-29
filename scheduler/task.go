@@ -50,9 +50,6 @@ func (j *Job) register() {
 }
 
 func (j *Job) storeConfig() {
-	if _, err := os.Stat("/tmp/privatekey"); err != nil {
-		return
-	}
 	if os.Getenv("dataplaneid") == "" {
 		return
 	}

@@ -32,14 +32,14 @@ func NewJob(dataSet *dto.DataPlane) *Job {
 func (j *Job) InitialRun() {
 	j.register()
 	j.storeConfig()
-	j.setupPlugin()
 	j.loadConfig()
+	j.setupPlugin()
 }
 
 func (j *Job) Run() {
 	gocron.Every(60).Second().Do(j.register)
 	gocron.Every(60).Second().Do(j.storeConfig)
-	gocron.Every(60).Second().Do(j.setupPlugin)
+	gocron.Every(15).Second().Do(j.setupPlugin)
 	gocron.Every(60).Second().Do(j.getIngress)
 	<-gocron.Start()
 }

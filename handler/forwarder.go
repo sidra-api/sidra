@@ -2,7 +2,6 @@ package handler
 
 import (
 	"fmt"
-	"net/url"
 	"os"
 	"time"
 
@@ -10,24 +9,12 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-func (h *Handler) ForwardToService(ctx *fasthttp.RequestCtx, request dto.SidraRequest, resp *fasthttp.Response, serviceName, servicePort string) {
-	targetURL := &url.URL{
-		Scheme: "http",
-		Host:   serviceName + ":" + servicePort,
-		Path:   request.Url,
-	}
-
-	// Extract query parameters from the original request
-	queryParams := ctx.QueryArgs().String()
-	if queryParams != "" {
-		targetURL.RawQuery = queryParams
-	}
-
+func (h *Handler) ForwardToService(ctx *fasthttp.RequestCtx, request dto.SidraRequest, resp *fasthttp.Response) {
 	readTimeout, _ := time.ParseDuration("30000ms")
 	writeTimeout, _ := time.ParseDuration("30000ms")
 	maxIdleConnDuration, _ := time.ParseDuration("1h")
 	client := &fasthttp.HostClient{
-		Addr:                          targetURL.Host,
+		Addr:                          request.Upstream,
 		ReadTimeout:                   readTimeout,
 		WriteTimeout:                  writeTimeout,
 		MaxIdleConnDuration:           maxIdleConnDuration,
@@ -47,7 +34,7 @@ func (h *Handler) ForwardToService(ctx *fasthttp.RequestCtx, request dto.SidraRe
 	} else {
 		req.Header.Set("X-Forwarded-Proto", "http")
 	}
-	req.SetRequestURI(fmt.Sprintf("%s", targetURL.RequestURI()))
+	req.SetRequestURI(string(ctx.Request.URI().RequestURI()))
 	for k, v := range request.Headers {
 		if v == "" {
 			continue

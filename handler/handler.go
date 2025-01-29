@@ -59,13 +59,13 @@ func (h *Handler) DefaultHandler() fasthttp.RequestHandler {
 			gs = "standalone"
 		}
 
-		request := h.createSidraRequest(ctx)
+		request := h.createSidraRequest(ctx, route)
 		response := h.executePlugins(route.Plugins, request, ctx, startTime, dataplane, gs)
 		if response.StatusCode != 0 && response.StatusCode != http.StatusOK {
 			return
 		}
 
-		h.forwardRequest(ctx, request, route, response, startTime, dataplane, gs)
+		h.forwardRequest(ctx, request, response, startTime, dataplane, gs)
 	}
 }
 
@@ -101,13 +101,15 @@ func (h *Handler) findRoute(ctx *fasthttp.RequestCtx) (dto.SerializeRoute, bool)
 	return route, exists
 }
 
-func (h *Handler) createSidraRequest(ctx *fasthttp.RequestCtx) dto.SidraRequest {
+func (h *Handler) createSidraRequest(ctx *fasthttp.RequestCtx, route dto.SerializeRoute) dto.SidraRequest {
 	requestBody := string(ctx.Request.Body())
 	request := dto.SidraRequest{
-		Headers: make(map[string]string),
-		Body:    requestBody,
-		Url:     string(ctx.Request.URI().Path()),
-		Method:  string(ctx.Request.Header.Method()),
+		Upstream: route.UpstreamHost + ":" + route.UpstreamPort,
+		Headers:  make(map[string]string),
+		Body:     requestBody,
+		Url:      string(ctx.Request.URI().RequestURI()),
+		Method:   string(ctx.Request.Header.Method()),
+		Plugins:  route.Plugins,
 	}
 	clientIP := strings.Split(ctx.RemoteAddr().String(), ":")[0]
 	request.Headers["X-Real-IP"] = clientIP
@@ -146,10 +148,10 @@ func (h *Handler) executePlugins(plugins []string, request dto.SidraRequest, ctx
 	return response
 }
 
-func (h *Handler) forwardRequest(ctx *fasthttp.RequestCtx, request dto.SidraRequest, route dto.SerializeRoute, response dto.SidraResponse, startTime time.Time, dataplane, gs string) {
+func (h *Handler) forwardRequest(ctx *fasthttp.RequestCtx, request dto.SidraRequest, response dto.SidraResponse, startTime time.Time, dataplane, gs string) {
 	resp := fasthttp.AcquireResponse()
-	h.ForwardToService(ctx, request, resp, route.UpstreamHost, route.UpstreamPort)
-	for _, plugin := range route.Plugins {
+	h.ForwardToService(ctx, request, resp)
+	for _, plugin := range request.Plugins {
 		if plugin == "" {
 			continue
 		}
@@ -172,10 +174,9 @@ func (h *Handler) forwardRequest(ctx *fasthttp.RequestCtx, request dto.SidraRequ
 	if upstreamLocation != "" {
 		parsedURL, err := url.Parse(upstreamLocation)
 		if err == nil {
-			ctx.Response.Header.Set("Location", fmt.Sprintf("%s://%s%s", scheme, ctx.Host(), parsedURL.Path))
+			ctx.Response.Header.Set("Location", fmt.Sprintf("%s://%s%s", scheme, ctx.Host(), parsedURL.RequestURI()))
 		}
 	}
-	ctx.Response.Header.Set("Host", string(ctx.Host()))
 	ctx.Response.SetStatusCode(resp.StatusCode())
 	ctx.Response.SetBody(resp.Body())
 	h.httpStatusCounter.WithLabelValues(strconv.Itoa(response.StatusCode), request.Url, string(ctx.Host()), dataplane, gs).Inc()

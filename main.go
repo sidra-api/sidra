@@ -70,14 +70,14 @@ func main() {
 		if keyFile == "" {
 			keyFile = "/tmp/server.key"
 		}
-		log.Fatal(fasthttp.ListenAndServeTLS(":"+portSll, certFile, keyFile, h.DefaultHandler()))
+		log.Fatal(fasthttp.ListenAndServeTLS("0.0.0.0:"+portSll, certFile, keyFile, h.DefaultHandler()))
 	}()
 	go func() {
-		log.Fatal(fasthttp.ListenAndServe(":"+port, h.DefaultHandler()))
+		log.Fatal(fasthttp.ListenAndServe("0.0.0.0:"+port, h.DefaultHandler()))
 	}()
 	go func() {
 		http.Handle("/metrics", promhttp.Handler())
-		log.Fatal(http.ListenAndServe(":9100", nil))
+		log.Fatal(http.ListenAndServe("0.0.0.0:9100", nil))
 	}()
 	log.Println("Sidra plugin server is running on port:", port)
 	<-shutdownChan

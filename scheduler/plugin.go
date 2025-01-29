@@ -8,9 +8,6 @@ import (
 )
 
 func (j *Job) setupPlugin() {
-	if _, err := os.Stat("/tmp/privatekey"); err != nil {
-		return
-	}
 	for _, plugin := range j.dataSet.Plugins {
 		if plugin.Enabled == 0 {
 			continue

@@ -1,14 +1,14 @@
 GatewayService:
-  host: "localhost:8080"
+  host: "127.0.0.1:8080"
 Routes:
   - methods: "GET,POST"
     upstream_host: "localhost"
     upstream_port: "8081"
     path: "/"
     path_type: "prefix"
-    plugins: [""]
+    plugins: ["example-jwt"]
 Plugins:
   - name: "example-jwt"
     type_plugin: "jwt"
     enabled: 1
-    config: '{"key":"value"}'
+    config: '{"JWT_SECRET_KEY":"default-secret-keydefault-secret-keydefault-secret-key"}'

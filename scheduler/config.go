@@ -20,9 +20,6 @@ func (j *Job) loadConfig() {
 			*configPath = "/tmp/config.yaml"
 		}
 	}
-	if *configPath == "" {
-		return
-	}
 	data, err := os.ReadFile(*configPath)
 	if err != nil {
 		log.Default().Println(err, "Error reading the file")
@@ -31,6 +28,15 @@ func (j *Job) loadConfig() {
 	err = yaml.Unmarshal(data, &gsDetail)
 	if err != nil {
 		log.Default().Println(err, "Error unmarshalling the data")
+	}
+	for _, gs := range gsDetail.Plugins {
+		j.dataSet.Plugins[gs.Name] = dto.Plugin{
+			ID:         gs.ID,
+			Name:       gs.Name,
+			TypePlugin: gs.TypePlugin,
+			Config:     gs.Config,
+			Enabled:    gs.Enabled,
+		}
 	}
 	for _, route := range gsDetail.Routes {
 		key := gsDetail.GatewayService.Host + route.Path
