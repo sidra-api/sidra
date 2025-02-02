@@ -64,8 +64,10 @@ func (h *Handler) DefaultHandler() fasthttp.RequestHandler {
 		if response.StatusCode != 0 && response.StatusCode != http.StatusOK {
 			return
 		}
-
-		h.forwardRequest(ctx, request, response, startTime, dataplane, gs)
+		for key, value := range response.Headers {
+			request.Headers[key] = value
+		}
+		h.forwardRequest(ctx, request, startTime, dataplane, gs)
 	}
 }
 
@@ -127,9 +129,6 @@ func (h *Handler) executePlugins(plugins []string, request dto.SidraRequest, ctx
 			continue
 		}
 		response = h.GoPlugin(plugin, request)
-		for key, values := range response.Headers {
-			request.Headers[key] = values
-		}
 		if response.StatusCode != 0 && response.StatusCode != http.StatusOK {
 			h.httpStatusCounter.WithLabelValues(strconv.Itoa(response.StatusCode), request.Url, string(ctx.Host()), dataplane, gs).Inc()
 			h.requestDuration.WithLabelValues(request.Url, string(ctx.Host()), dataplane, gs).Observe(time.Since(startTime).Seconds())
@@ -148,15 +147,10 @@ func (h *Handler) executePlugins(plugins []string, request dto.SidraRequest, ctx
 	return response
 }
 
-func (h *Handler) forwardRequest(ctx *fasthttp.RequestCtx, request dto.SidraRequest, response dto.SidraResponse, startTime time.Time, dataplane, gs string) {
+func (h *Handler) forwardRequest(ctx *fasthttp.RequestCtx, request dto.SidraRequest, startTime time.Time, dataplane, gs string) {
 	resp := fasthttp.AcquireResponse()
 	h.ForwardToService(ctx, request, resp)
-	for _, plugin := range request.Plugins {
-		if plugin == "" {
-			continue
-		}
-		response = h.GoPlugin(plugin+".response", request)
-	}
+	//@TODO response plugin
 
 	resp.Header.VisitAll(func(key, value []byte) {
 		ctx.Response.Header.Set(string(key), string(value))
@@ -184,7 +178,7 @@ func (h *Handler) forwardRequest(ctx *fasthttp.RequestCtx, request dto.SidraRequ
 	}
 	ctx.Response.SetStatusCode(resp.StatusCode())
 	ctx.Response.SetBody(resp.Body())
-	h.httpStatusCounter.WithLabelValues(strconv.Itoa(response.StatusCode), request.Url, string(ctx.Host()), dataplane, gs).Inc()
+	h.httpStatusCounter.WithLabelValues(strconv.Itoa(resp.StatusCode()), request.Url, string(ctx.Host()), dataplane, gs).Inc()
 	h.requestDuration.WithLabelValues(request.Url, string(ctx.Host()), dataplane, gs).Observe(time.Since(startTime).Seconds())
 	fasthttp.ReleaseResponse(resp)
 }
