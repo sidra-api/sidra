@@ -19,6 +19,7 @@ func (j *Job) loadConfig() {
 			log.Default().Println("Config file found in /tmp/config.yaml")
 			*configPath = "/tmp/config.yaml"
 		}
+		return
 	}
 	data, err := os.ReadFile(*configPath)
 	if err != nil {

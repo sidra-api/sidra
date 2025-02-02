@@ -85,7 +85,7 @@ func (h *Handler) findRoute(ctx *fasthttp.RequestCtx) (dto.SerializeRoute, bool)
 	}
 	if requestPath != "/" {
 		segments := strings.Split(requestPath, "/")
-		for i := 1; i <= len(segments); i++ {
+		for i := len(segments); i > 1; i-- {
 			path := strings.Join(segments[:i], "/")
 			if path == "" {
 				path = "/"
