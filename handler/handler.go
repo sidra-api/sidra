@@ -173,9 +173,14 @@ func (h *Handler) forwardRequest(ctx *fasthttp.RequestCtx, request dto.SidraRequ
 	upstreamLocation := string(resp.Header.Peek("Location"))
 	if upstreamLocation != "" {
 		parsedURL, err := url.Parse(upstreamLocation)
-		if err == nil {
-			ctx.Response.Header.Set("Location", fmt.Sprintf("%s://%s%s", scheme, ctx.Host(), parsedURL.RequestURI()))
+		if err != nil {
+			ctx.Response.Header.Set("Location", upstreamLocation)
 		}
+		location := fmt.Sprintf("%s://%s%s", scheme, ctx.Host(), parsedURL.RequestURI())
+		if parsedURL.Fragment != "" {
+			location += "#" + parsedURL.Fragment
+		}
+		ctx.Response.Header.Set("Location", location)
 	}
 	ctx.Response.SetStatusCode(resp.StatusCode())
 	ctx.Response.SetBody(resp.Body())
