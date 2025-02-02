@@ -39,7 +39,6 @@ func (h *Handler) ForwardToService(ctx *fasthttp.RequestCtx, request dto.SidraRe
 		if v == "" {
 			continue
 		}
-		fmt.Printf("DEBUG Header: %s: %s\n", k, v)
 		req.Header.Set(k, v)
 	}
 	req.SetBody([]byte(request.Body))
