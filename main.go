@@ -40,7 +40,7 @@ func init() {
 }
 
 func main() {
-	version := "v1.0.1"
+	version := "v1.0.2"
 	fmt.Println("Sidra plugin server is running  " + version)
 	dataSet := dto.NewDataPlane()
 	h := handler.NewHandler(dataSet, httpStatusCounter, requestDuration)
