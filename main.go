@@ -70,7 +70,11 @@ func main() {
 		if keyFile == "" {
 			keyFile = "/tmp/server.key"
 		}
-		log.Fatal(fasthttp.ListenAndServeTLS("0.0.0.0:"+portSll, certFile, keyFile, h.DefaultHandler()))
+		server := &fasthttp.Server{
+			Handler:      h.DefaultHandler(),
+			LogAllErrors: false,
+		}
+		log.Fatal(server.ListenAndServeTLS("0.0.0.0:"+portSll, certFile, keyFile))
 	}()
 	go func() {
 		log.Fatal(fasthttp.ListenAndServe("0.0.0.0:"+port, h.DefaultHandler()))
