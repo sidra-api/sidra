@@ -33,10 +33,18 @@ func NewHandler(dataSet *dto.DataPlane, httpStatusCounter *prometheus.CounterVec
 func (h *Handler) DefaultHandler() fasthttp.RequestHandler {
 	return func(ctx *fasthttp.RequestCtx) {
 		if string(ctx.Request.URI().Path()) == "/sidra/healthcheck" {
+			if !strings.HasPrefix(ctx.RemoteAddr().String(), "127.0.0.1") && !strings.HasPrefix(ctx.RemoteAddr().String(), "[::1]") {
+				ctx.Error("Forbidden", http.StatusForbidden)
+				return
+			}
 			h.handleHealthCheck(ctx)
 			return
 		}
-		if string(ctx.Request.URI().Path()) == "/endpoints" {
+		if string(ctx.Request.URI().Path()) == "/sidra/endpoints" {
+			if !strings.HasPrefix(ctx.RemoteAddr().String(), "127.0.0.1") && !strings.HasPrefix(ctx.RemoteAddr().String(), "[::1]") {
+				ctx.Error("Forbidden", http.StatusForbidden)
+				return
+			}
 			jsonResponse, _ := json.Marshal(h.dataSet.SerializeRoute)
 			log.Default().Println("endpoints", string(jsonResponse))
 			ctx.Response.SetStatusCode(200)
