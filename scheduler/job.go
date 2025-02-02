@@ -38,8 +38,8 @@ func (j *Job) InitialRun() {
 
 func (j *Job) Run() {
 	gocron.Every(60).Second().Do(j.register)
-	gocron.Every(60).Second().Do(j.storeConfig)
+	gocron.Every(120).Second().Do(j.storeConfig)
 	gocron.Every(15).Second().Do(j.setupPlugin)
-	gocron.Every(60).Second().Do(j.getIngress)
+	//gocron.Every(600).Second().Do(j.getIngress)
 	<-gocron.Start()
 }
