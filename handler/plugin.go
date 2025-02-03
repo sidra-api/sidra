@@ -12,7 +12,7 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-func executePlugins(plugins []string, request dto.SidraRequest, ctx *fasthttp.RequestCtx, startTime time.Time, dataplane, gs string) dto.SidraResponse {
+func (h *Handler) executePlugins(plugins []string, request dto.SidraRequest, ctx *fasthttp.RequestCtx, startTime time.Time, dataplane, gs string) dto.SidraResponse {
 	var response dto.SidraResponse
 
 	for _, plugin := range plugins {

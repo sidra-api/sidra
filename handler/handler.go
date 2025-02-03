@@ -58,7 +58,7 @@ func (h *Handler) DefaultHandler() fasthttp.RequestHandler {
 		}
 
 		request := h.createSidraRequest(ctx, route)
-		response := executePlugins(route.Plugins, request, ctx, startTime, dataplane, gs)
+		response := h.executePlugins(route.Plugins, request, ctx, startTime, dataplane, gs)
 
 		if response.StatusCode != 0 && response.StatusCode != http.StatusOK {
 			return
