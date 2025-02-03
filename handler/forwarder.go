@@ -17,7 +17,7 @@ func (h *Handler) forwardRequest(ctx *fasthttp.RequestCtx, request dto.SidraRequ
 
 	for _, plugin := range plugins {
 		if strings.HasPrefix(plugin, "cache") {
-			callPluginWithBody(plugin, request)
+			callPluginWithBody(plugin, request, h.dataSet.Plugins[plugin])
 		}
 	}
 
