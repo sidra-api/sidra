@@ -2,14 +2,64 @@ package handler
 
 import (
 	"fmt"
+	"net/url"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/sidra-api/sidra/dto"
 	"github.com/valyala/fasthttp"
 )
 
-func (h *Handler) ForwardToService(ctx *fasthttp.RequestCtx, request dto.SidraRequest, resp *fasthttp.Response) {
+func (h *Handler) forwardRequest(ctx *fasthttp.RequestCtx, request dto.SidraRequest, plugins []string) int {
+	resp := fasthttp.AcquireResponse()
+	exchange(ctx, request, resp)
+
+	for _, plugin := range plugins {
+		if strings.HasPrefix(plugin, "cache") {
+			callPluginWithBody(plugin, request)
+		}
+	}
+
+	resp.Header.VisitAll(func(key, value []byte) {
+		ctx.Response.Header.Set(string(key), string(value))
+	})
+
+	ctx.Response.Header.Set("Content-Type", string(resp.Header.Peek("Content-Type")))
+	ctx.Response.Header.Set("Server", "Sidra")
+
+	scheme := "http"
+	if ctx.IsTLS() {
+		scheme = "https"
+	}
+
+	upstreamLocation := string(resp.Header.Peek("Location"))
+
+	if upstreamLocation != "" {
+		parsedURL, err := url.Parse(upstreamLocation)
+
+		if err != nil {
+			ctx.Response.Header.Set("Location", upstreamLocation)
+		}
+
+		location := fmt.Sprintf("%s://%s%s", scheme, ctx.Host(), parsedURL.RequestURI())
+
+		if parsedURL.Fragment != "" {
+			location += "#" + parsedURL.Fragment
+		}
+
+		ctx.Response.Header.Set("Location", location)
+	}
+
+	httpStatusCode := resp.StatusCode()
+	ctx.Response.SetStatusCode(resp.StatusCode())
+	ctx.Response.SetBody(resp.Body())
+	fasthttp.ReleaseResponse(resp)
+
+	return httpStatusCode
+}
+
+func exchange(ctx *fasthttp.RequestCtx, request dto.SidraRequest, resp *fasthttp.Response) {
 	readTimeout, _ := time.ParseDuration("30000ms")
 	writeTimeout, _ := time.ParseDuration("30000ms")
 	maxIdleConnDuration, _ := time.ParseDuration("1h")
