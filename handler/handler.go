@@ -2,10 +2,8 @@ package handler
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
-	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -77,7 +75,7 @@ func (h *Handler) DefaultHandler() fasthttp.RequestHandler {
 }
 
 func (h *Handler) isHealthCheckRequest(ctx *fasthttp.RequestCtx) bool {
-	return string(ctx.Request.URI().Path()) == "/sidra/healthcheck" && h.isLocalRequest(ctx)
+	return string(ctx.Request.URI().Path()) == "/sidra/healthcheck"
 }
 
 func (h *Handler) isEndpointsRequest(ctx *fasthttp.RequestCtx) bool {
@@ -102,4 +100,3 @@ func (h *Handler) handleEndpoints(ctx *fasthttp.RequestCtx) {
 	ctx.Response.SetStatusCode(http.StatusOK)
 	ctx.Response.SetBody(jsonResponse)
 }
-
